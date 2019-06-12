@@ -1,0 +1,15 @@
+{
+  "name": "spotify-song-range-server",
+  "version": "1.0.0",
+  "description": "Server for the spotify-song-range repo",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index"
+  },
+  "author": "Daniel Schubert",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}
