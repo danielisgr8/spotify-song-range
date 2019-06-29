@@ -3,9 +3,8 @@ import commonjs from "rollup-plugin-commonjs";
 import postcss from "rollup-plugin-postcss";
 import replace from "rollup-plugin-replace";
 import resolve from "rollup-plugin-node-resolve";
-
 module.exports = {
-    input: "src/index.js",
+    input: "src/index.jsx",
     output: {
         file: "public/index.js",
         format: "umd"
@@ -14,13 +13,19 @@ module.exports = {
         replace({
             "process.env.NODE_ENV": JSON.stringify("development")
         }),
-        resolve({
-            browser: true
-        }),
-        postcss(),
         babel({
             exclude: "node_modules/**"
         }),
-        commonjs()
+        resolve({
+            browser: true,
+            extensions: [".js", ".jsx"]
+        }),
+        postcss(),
+        commonjs({
+            include: "node_modules/**",
+            namedExports: {
+                "node_modules/react/index.js": ["useState", "useEffect"]
+            }
+        })
     ]
 };

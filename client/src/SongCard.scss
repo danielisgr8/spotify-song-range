@@ -1,0 +1,28 @@
+.song-card-holder {
+    display: flex;
+    // flex-direction: column;
+    flex-wrap: wrap;
+    justify-content: space-around;
+
+    .song-card {
+        border: 1px solid black;
+        margin-bottom: 0.5rem;
+
+        display: flex;
+        flex-direction: column;
+        flex-basis: 15%;
+
+        overflow: hidden;
+
+        p {
+            margin: .4rem 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+
+            &:hover {
+                white-space: normal;
+            }
+        }
+    }
+}
