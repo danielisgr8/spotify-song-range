@@ -2057,6 +2057,9 @@
 	});
 	var react_1 = react.useState;
 	var react_2 = react.useEffect;
+	var react_3 = react.Component;
+	var react_4 = react.isValidElement;
+	var react_5 = react.cloneElement;
 
 	var scheduler_development = createCommonjsModule(function (module, exports) {
 
@@ -23535,6 +23538,7 @@
 	  module.exports = reactDom_development;
 	}
 	});
+	var reactDom_1 = reactDom.render;
 
 	function styleInject(css, ref) {
 	  if ( ref === void 0 ) ref = {};
@@ -23565,6 +23569,24 @@
 
 	var css = "body {\n  margin: 0;\n  font-family: \"Roboto\", \"Helvetica Neue\", sans-serif;\n}\n";
 	styleInject(css);
+
+	function _extends() {
+	  _extends = Object.assign || function (target) {
+	    for (var i = 1; i < arguments.length; i++) {
+	      var source = arguments[i];
+
+	      for (var key in source) {
+	        if (Object.prototype.hasOwnProperty.call(source, key)) {
+	          target[key] = source[key];
+	        }
+	      }
+	    }
+
+	    return target;
+	  };
+
+	  return _extends.apply(this, arguments);
+	}
 
 	function _slicedToArray(arr, i) {
 	  return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest();
@@ -23603,6 +23625,3330 @@
 	function _nonIterableRest() {
 	  throw new TypeError("Invalid attempt to destructure non-iterable instance");
 	}
+
+	function _extends$1() {
+	  _extends$1 = Object.assign || function (target) {
+	    for (var i = 1; i < arguments.length; i++) {
+	      var source = arguments[i];
+
+	      for (var key in source) {
+	        if (Object.prototype.hasOwnProperty.call(source, key)) {
+	          target[key] = source[key];
+	        }
+	      }
+	    }
+
+	    return target;
+	  };
+
+	  return _extends$1.apply(this, arguments);
+	}
+
+	function _objectWithoutPropertiesLoose(source, excluded) {
+	  if (source == null) return {};
+	  var target = {};
+	  var sourceKeys = Object.keys(source);
+	  var key, i;
+
+	  for (i = 0; i < sourceKeys.length; i++) {
+	    key = sourceKeys[i];
+	    if (excluded.indexOf(key) >= 0) continue;
+	    target[key] = source[key];
+	  }
+
+	  return target;
+	}
+
+	function _inheritsLoose(subClass, superClass) {
+	  subClass.prototype = Object.create(superClass.prototype);
+	  subClass.prototype.constructor = subClass;
+	  subClass.__proto__ = superClass;
+	}
+
+	var reactIs_development = createCommonjsModule(function (module, exports) {
+
+
+
+	{
+	  (function() {
+
+	Object.defineProperty(exports, '__esModule', { value: true });
+
+	// The Symbol used to tag the ReactElement-like types. If there is no native Symbol
+	// nor polyfill, then a plain number is used for performance.
+	var hasSymbol = typeof Symbol === 'function' && Symbol.for;
+
+	var REACT_ELEMENT_TYPE = hasSymbol ? Symbol.for('react.element') : 0xeac7;
+	var REACT_PORTAL_TYPE = hasSymbol ? Symbol.for('react.portal') : 0xeaca;
+	var REACT_FRAGMENT_TYPE = hasSymbol ? Symbol.for('react.fragment') : 0xeacb;
+	var REACT_STRICT_MODE_TYPE = hasSymbol ? Symbol.for('react.strict_mode') : 0xeacc;
+	var REACT_PROFILER_TYPE = hasSymbol ? Symbol.for('react.profiler') : 0xead2;
+	var REACT_PROVIDER_TYPE = hasSymbol ? Symbol.for('react.provider') : 0xeacd;
+	var REACT_CONTEXT_TYPE = hasSymbol ? Symbol.for('react.context') : 0xeace;
+	var REACT_ASYNC_MODE_TYPE = hasSymbol ? Symbol.for('react.async_mode') : 0xeacf;
+	var REACT_CONCURRENT_MODE_TYPE = hasSymbol ? Symbol.for('react.concurrent_mode') : 0xeacf;
+	var REACT_FORWARD_REF_TYPE = hasSymbol ? Symbol.for('react.forward_ref') : 0xead0;
+	var REACT_SUSPENSE_TYPE = hasSymbol ? Symbol.for('react.suspense') : 0xead1;
+	var REACT_MEMO_TYPE = hasSymbol ? Symbol.for('react.memo') : 0xead3;
+	var REACT_LAZY_TYPE = hasSymbol ? Symbol.for('react.lazy') : 0xead4;
+
+	function isValidElementType(type) {
+	  return typeof type === 'string' || typeof type === 'function' ||
+	  // Note: its typeof might be other than 'symbol' or 'number' if it's a polyfill.
+	  type === REACT_FRAGMENT_TYPE || type === REACT_CONCURRENT_MODE_TYPE || type === REACT_PROFILER_TYPE || type === REACT_STRICT_MODE_TYPE || type === REACT_SUSPENSE_TYPE || typeof type === 'object' && type !== null && (type.$$typeof === REACT_LAZY_TYPE || type.$$typeof === REACT_MEMO_TYPE || type.$$typeof === REACT_PROVIDER_TYPE || type.$$typeof === REACT_CONTEXT_TYPE || type.$$typeof === REACT_FORWARD_REF_TYPE);
+	}
+
+	/**
+	 * Forked from fbjs/warning:
+	 * https://github.com/facebook/fbjs/blob/e66ba20ad5be433eb54423f2b097d829324d9de6/packages/fbjs/src/__forks__/warning.js
+	 *
+	 * Only change is we use console.warn instead of console.error,
+	 * and do nothing when 'console' is not supported.
+	 * This really simplifies the code.
+	 * ---
+	 * Similar to invariant but only logs a warning if the condition is not met.
+	 * This can be used to log issues in development environments in critical
+	 * paths. Removing the logging code for production environments will keep the
+	 * same logic and follow the same code paths.
+	 */
+
+	var lowPriorityWarning = function () {};
+
+	{
+	  var printWarning = function (format) {
+	    for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+	      args[_key - 1] = arguments[_key];
+	    }
+
+	    var argIndex = 0;
+	    var message = 'Warning: ' + format.replace(/%s/g, function () {
+	      return args[argIndex++];
+	    });
+	    if (typeof console !== 'undefined') {
+	      console.warn(message);
+	    }
+	    try {
+	      // --- Welcome to debugging React ---
+	      // This error was thrown as a convenience so that you can use this stack
+	      // to find the callsite that caused this warning to fire.
+	      throw new Error(message);
+	    } catch (x) {}
+	  };
+
+	  lowPriorityWarning = function (condition, format) {
+	    if (format === undefined) {
+	      throw new Error('`lowPriorityWarning(condition, format, ...args)` requires a warning ' + 'message argument');
+	    }
+	    if (!condition) {
+	      for (var _len2 = arguments.length, args = Array(_len2 > 2 ? _len2 - 2 : 0), _key2 = 2; _key2 < _len2; _key2++) {
+	        args[_key2 - 2] = arguments[_key2];
+	      }
+
+	      printWarning.apply(undefined, [format].concat(args));
+	    }
+	  };
+	}
+
+	var lowPriorityWarning$1 = lowPriorityWarning;
+
+	function typeOf(object) {
+	  if (typeof object === 'object' && object !== null) {
+	    var $$typeof = object.$$typeof;
+	    switch ($$typeof) {
+	      case REACT_ELEMENT_TYPE:
+	        var type = object.type;
+
+	        switch (type) {
+	          case REACT_ASYNC_MODE_TYPE:
+	          case REACT_CONCURRENT_MODE_TYPE:
+	          case REACT_FRAGMENT_TYPE:
+	          case REACT_PROFILER_TYPE:
+	          case REACT_STRICT_MODE_TYPE:
+	          case REACT_SUSPENSE_TYPE:
+	            return type;
+	          default:
+	            var $$typeofType = type && type.$$typeof;
+
+	            switch ($$typeofType) {
+	              case REACT_CONTEXT_TYPE:
+	              case REACT_FORWARD_REF_TYPE:
+	              case REACT_PROVIDER_TYPE:
+	                return $$typeofType;
+	              default:
+	                return $$typeof;
+	            }
+	        }
+	      case REACT_LAZY_TYPE:
+	      case REACT_MEMO_TYPE:
+	      case REACT_PORTAL_TYPE:
+	        return $$typeof;
+	    }
+	  }
+
+	  return undefined;
+	}
+
+	// AsyncMode is deprecated along with isAsyncMode
+	var AsyncMode = REACT_ASYNC_MODE_TYPE;
+	var ConcurrentMode = REACT_CONCURRENT_MODE_TYPE;
+	var ContextConsumer = REACT_CONTEXT_TYPE;
+	var ContextProvider = REACT_PROVIDER_TYPE;
+	var Element = REACT_ELEMENT_TYPE;
+	var ForwardRef = REACT_FORWARD_REF_TYPE;
+	var Fragment = REACT_FRAGMENT_TYPE;
+	var Lazy = REACT_LAZY_TYPE;
+	var Memo = REACT_MEMO_TYPE;
+	var Portal = REACT_PORTAL_TYPE;
+	var Profiler = REACT_PROFILER_TYPE;
+	var StrictMode = REACT_STRICT_MODE_TYPE;
+	var Suspense = REACT_SUSPENSE_TYPE;
+
+	var hasWarnedAboutDeprecatedIsAsyncMode = false;
+
+	// AsyncMode should be deprecated
+	function isAsyncMode(object) {
+	  {
+	    if (!hasWarnedAboutDeprecatedIsAsyncMode) {
+	      hasWarnedAboutDeprecatedIsAsyncMode = true;
+	      lowPriorityWarning$1(false, 'The ReactIs.isAsyncMode() alias has been deprecated, ' + 'and will be removed in React 17+. Update your code to use ' + 'ReactIs.isConcurrentMode() instead. It has the exact same API.');
+	    }
+	  }
+	  return isConcurrentMode(object) || typeOf(object) === REACT_ASYNC_MODE_TYPE;
+	}
+	function isConcurrentMode(object) {
+	  return typeOf(object) === REACT_CONCURRENT_MODE_TYPE;
+	}
+	function isContextConsumer(object) {
+	  return typeOf(object) === REACT_CONTEXT_TYPE;
+	}
+	function isContextProvider(object) {
+	  return typeOf(object) === REACT_PROVIDER_TYPE;
+	}
+	function isElement(object) {
+	  return typeof object === 'object' && object !== null && object.$$typeof === REACT_ELEMENT_TYPE;
+	}
+	function isForwardRef(object) {
+	  return typeOf(object) === REACT_FORWARD_REF_TYPE;
+	}
+	function isFragment(object) {
+	  return typeOf(object) === REACT_FRAGMENT_TYPE;
+	}
+	function isLazy(object) {
+	  return typeOf(object) === REACT_LAZY_TYPE;
+	}
+	function isMemo(object) {
+	  return typeOf(object) === REACT_MEMO_TYPE;
+	}
+	function isPortal(object) {
+	  return typeOf(object) === REACT_PORTAL_TYPE;
+	}
+	function isProfiler(object) {
+	  return typeOf(object) === REACT_PROFILER_TYPE;
+	}
+	function isStrictMode(object) {
+	  return typeOf(object) === REACT_STRICT_MODE_TYPE;
+	}
+	function isSuspense(object) {
+	  return typeOf(object) === REACT_SUSPENSE_TYPE;
+	}
+
+	exports.typeOf = typeOf;
+	exports.AsyncMode = AsyncMode;
+	exports.ConcurrentMode = ConcurrentMode;
+	exports.ContextConsumer = ContextConsumer;
+	exports.ContextProvider = ContextProvider;
+	exports.Element = Element;
+	exports.ForwardRef = ForwardRef;
+	exports.Fragment = Fragment;
+	exports.Lazy = Lazy;
+	exports.Memo = Memo;
+	exports.Portal = Portal;
+	exports.Profiler = Profiler;
+	exports.StrictMode = StrictMode;
+	exports.Suspense = Suspense;
+	exports.isValidElementType = isValidElementType;
+	exports.isAsyncMode = isAsyncMode;
+	exports.isConcurrentMode = isConcurrentMode;
+	exports.isContextConsumer = isContextConsumer;
+	exports.isContextProvider = isContextProvider;
+	exports.isElement = isElement;
+	exports.isForwardRef = isForwardRef;
+	exports.isFragment = isFragment;
+	exports.isLazy = isLazy;
+	exports.isMemo = isMemo;
+	exports.isPortal = isPortal;
+	exports.isProfiler = isProfiler;
+	exports.isStrictMode = isStrictMode;
+	exports.isSuspense = isSuspense;
+	  })();
+	}
+	});
+
+	unwrapExports(reactIs_development);
+	var reactIs_development_1 = reactIs_development.typeOf;
+	var reactIs_development_2 = reactIs_development.AsyncMode;
+	var reactIs_development_3 = reactIs_development.ConcurrentMode;
+	var reactIs_development_4 = reactIs_development.ContextConsumer;
+	var reactIs_development_5 = reactIs_development.ContextProvider;
+	var reactIs_development_6 = reactIs_development.Element;
+	var reactIs_development_7 = reactIs_development.ForwardRef;
+	var reactIs_development_8 = reactIs_development.Fragment;
+	var reactIs_development_9 = reactIs_development.Lazy;
+	var reactIs_development_10 = reactIs_development.Memo;
+	var reactIs_development_11 = reactIs_development.Portal;
+	var reactIs_development_12 = reactIs_development.Profiler;
+	var reactIs_development_13 = reactIs_development.StrictMode;
+	var reactIs_development_14 = reactIs_development.Suspense;
+	var reactIs_development_15 = reactIs_development.isValidElementType;
+	var reactIs_development_16 = reactIs_development.isAsyncMode;
+	var reactIs_development_17 = reactIs_development.isConcurrentMode;
+	var reactIs_development_18 = reactIs_development.isContextConsumer;
+	var reactIs_development_19 = reactIs_development.isContextProvider;
+	var reactIs_development_20 = reactIs_development.isElement;
+	var reactIs_development_21 = reactIs_development.isForwardRef;
+	var reactIs_development_22 = reactIs_development.isFragment;
+	var reactIs_development_23 = reactIs_development.isLazy;
+	var reactIs_development_24 = reactIs_development.isMemo;
+	var reactIs_development_25 = reactIs_development.isPortal;
+	var reactIs_development_26 = reactIs_development.isProfiler;
+	var reactIs_development_27 = reactIs_development.isStrictMode;
+	var reactIs_development_28 = reactIs_development.isSuspense;
+
+	var reactIs = createCommonjsModule(function (module) {
+
+	{
+	  module.exports = reactIs_development;
+	}
+	});
+
+	var has$1 = Function.call.bind(Object.prototype.hasOwnProperty);
+	var printWarning$1 = function() {};
+
+	{
+	  printWarning$1 = function(text) {
+	    var message = 'Warning: ' + text;
+	    if (typeof console !== 'undefined') {
+	      console.error(message);
+	    }
+	    try {
+	      // --- Welcome to debugging React ---
+	      // This error was thrown as a convenience so that you can use this stack
+	      // to find the callsite that caused this warning to fire.
+	      throw new Error(message);
+	    } catch (x) {}
+	  };
+	}
+
+	function emptyFunctionThatReturnsNull() {
+	  return null;
+	}
+
+	var factoryWithTypeCheckers = function(isValidElement, throwOnDirectAccess) {
+	  /* global Symbol */
+	  var ITERATOR_SYMBOL = typeof Symbol === 'function' && Symbol.iterator;
+	  var FAUX_ITERATOR_SYMBOL = '@@iterator'; // Before Symbol spec.
+
+	  /**
+	   * Returns the iterator method function contained on the iterable object.
+	   *
+	   * Be sure to invoke the function with the iterable as context:
+	   *
+	   *     var iteratorFn = getIteratorFn(myIterable);
+	   *     if (iteratorFn) {
+	   *       var iterator = iteratorFn.call(myIterable);
+	   *       ...
+	   *     }
+	   *
+	   * @param {?object} maybeIterable
+	   * @return {?function}
+	   */
+	  function getIteratorFn(maybeIterable) {
+	    var iteratorFn = maybeIterable && (ITERATOR_SYMBOL && maybeIterable[ITERATOR_SYMBOL] || maybeIterable[FAUX_ITERATOR_SYMBOL]);
+	    if (typeof iteratorFn === 'function') {
+	      return iteratorFn;
+	    }
+	  }
+
+	  /**
+	   * Collection of methods that allow declaration and validation of props that are
+	   * supplied to React components. Example usage:
+	   *
+	   *   var Props = require('ReactPropTypes');
+	   *   var MyArticle = React.createClass({
+	   *     propTypes: {
+	   *       // An optional string prop named "description".
+	   *       description: Props.string,
+	   *
+	   *       // A required enum prop named "category".
+	   *       category: Props.oneOf(['News','Photos']).isRequired,
+	   *
+	   *       // A prop named "dialog" that requires an instance of Dialog.
+	   *       dialog: Props.instanceOf(Dialog).isRequired
+	   *     },
+	   *     render: function() { ... }
+	   *   });
+	   *
+	   * A more formal specification of how these methods are used:
+	   *
+	   *   type := array|bool|func|object|number|string|oneOf([...])|instanceOf(...)
+	   *   decl := ReactPropTypes.{type}(.isRequired)?
+	   *
+	   * Each and every declaration produces a function with the same signature. This
+	   * allows the creation of custom validation functions. For example:
+	   *
+	   *  var MyLink = React.createClass({
+	   *    propTypes: {
+	   *      // An optional string or URI prop named "href".
+	   *      href: function(props, propName, componentName) {
+	   *        var propValue = props[propName];
+	   *        if (propValue != null && typeof propValue !== 'string' &&
+	   *            !(propValue instanceof URI)) {
+	   *          return new Error(
+	   *            'Expected a string or an URI for ' + propName + ' in ' +
+	   *            componentName
+	   *          );
+	   *        }
+	   *      }
+	   *    },
+	   *    render: function() {...}
+	   *  });
+	   *
+	   * @internal
+	   */
+
+	  var ANONYMOUS = '<<anonymous>>';
+
+	  // Important!
+	  // Keep this list in sync with production version in `./factoryWithThrowingShims.js`.
+	  var ReactPropTypes = {
+	    array: createPrimitiveTypeChecker('array'),
+	    bool: createPrimitiveTypeChecker('boolean'),
+	    func: createPrimitiveTypeChecker('function'),
+	    number: createPrimitiveTypeChecker('number'),
+	    object: createPrimitiveTypeChecker('object'),
+	    string: createPrimitiveTypeChecker('string'),
+	    symbol: createPrimitiveTypeChecker('symbol'),
+
+	    any: createAnyTypeChecker(),
+	    arrayOf: createArrayOfTypeChecker,
+	    element: createElementTypeChecker(),
+	    elementType: createElementTypeTypeChecker(),
+	    instanceOf: createInstanceTypeChecker,
+	    node: createNodeChecker(),
+	    objectOf: createObjectOfTypeChecker,
+	    oneOf: createEnumTypeChecker,
+	    oneOfType: createUnionTypeChecker,
+	    shape: createShapeTypeChecker,
+	    exact: createStrictShapeTypeChecker,
+	  };
+
+	  /**
+	   * inlined Object.is polyfill to avoid requiring consumers ship their own
+	   * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is
+	   */
+	  /*eslint-disable no-self-compare*/
+	  function is(x, y) {
+	    // SameValue algorithm
+	    if (x === y) {
+	      // Steps 1-5, 7-10
+	      // Steps 6.b-6.e: +0 != -0
+	      return x !== 0 || 1 / x === 1 / y;
+	    } else {
+	      // Step 6.a: NaN == NaN
+	      return x !== x && y !== y;
+	    }
+	  }
+	  /*eslint-enable no-self-compare*/
+
+	  /**
+	   * We use an Error-like object for backward compatibility as people may call
+	   * PropTypes directly and inspect their output. However, we don't use real
+	   * Errors anymore. We don't inspect their stack anyway, and creating them
+	   * is prohibitively expensive if they are created too often, such as what
+	   * happens in oneOfType() for any type before the one that matched.
+	   */
+	  function PropTypeError(message) {
+	    this.message = message;
+	    this.stack = '';
+	  }
+	  // Make `instanceof Error` still work for returned errors.
+	  PropTypeError.prototype = Error.prototype;
+
+	  function createChainableTypeChecker(validate) {
+	    {
+	      var manualPropTypeCallCache = {};
+	      var manualPropTypeWarningCount = 0;
+	    }
+	    function checkType(isRequired, props, propName, componentName, location, propFullName, secret) {
+	      componentName = componentName || ANONYMOUS;
+	      propFullName = propFullName || propName;
+
+	      if (secret !== ReactPropTypesSecret_1) {
+	        if (throwOnDirectAccess) {
+	          // New behavior only for users of `prop-types` package
+	          var err = new Error(
+	            'Calling PropTypes validators directly is not supported by the `prop-types` package. ' +
+	            'Use `PropTypes.checkPropTypes()` to call them. ' +
+	            'Read more at http://fb.me/use-check-prop-types'
+	          );
+	          err.name = 'Invariant Violation';
+	          throw err;
+	        } else if (typeof console !== 'undefined') {
+	          // Old behavior for people using React.PropTypes
+	          var cacheKey = componentName + ':' + propName;
+	          if (
+	            !manualPropTypeCallCache[cacheKey] &&
+	            // Avoid spamming the console because they are often not actionable except for lib authors
+	            manualPropTypeWarningCount < 3
+	          ) {
+	            printWarning$1(
+	              'You are manually calling a React.PropTypes validation ' +
+	              'function for the `' + propFullName + '` prop on `' + componentName  + '`. This is deprecated ' +
+	              'and will throw in the standalone `prop-types` package. ' +
+	              'You may be seeing this warning due to a third-party PropTypes ' +
+	              'library. See https://fb.me/react-warning-dont-call-proptypes ' + 'for details.'
+	            );
+	            manualPropTypeCallCache[cacheKey] = true;
+	            manualPropTypeWarningCount++;
+	          }
+	        }
+	      }
+	      if (props[propName] == null) {
+	        if (isRequired) {
+	          if (props[propName] === null) {
+	            return new PropTypeError('The ' + location + ' `' + propFullName + '` is marked as required ' + ('in `' + componentName + '`, but its value is `null`.'));
+	          }
+	          return new PropTypeError('The ' + location + ' `' + propFullName + '` is marked as required in ' + ('`' + componentName + '`, but its value is `undefined`.'));
+	        }
+	        return null;
+	      } else {
+	        return validate(props, propName, componentName, location, propFullName);
+	      }
+	    }
+
+	    var chainedCheckType = checkType.bind(null, false);
+	    chainedCheckType.isRequired = checkType.bind(null, true);
+
+	    return chainedCheckType;
+	  }
+
+	  function createPrimitiveTypeChecker(expectedType) {
+	    function validate(props, propName, componentName, location, propFullName, secret) {
+	      var propValue = props[propName];
+	      var propType = getPropType(propValue);
+	      if (propType !== expectedType) {
+	        // `propValue` being instance of, say, date/regexp, pass the 'object'
+	        // check, but we can offer a more precise error message here rather than
+	        // 'of type `object`'.
+	        var preciseType = getPreciseType(propValue);
+
+	        return new PropTypeError('Invalid ' + location + ' `' + propFullName + '` of type ' + ('`' + preciseType + '` supplied to `' + componentName + '`, expected ') + ('`' + expectedType + '`.'));
+	      }
+	      return null;
+	    }
+	    return createChainableTypeChecker(validate);
+	  }
+
+	  function createAnyTypeChecker() {
+	    return createChainableTypeChecker(emptyFunctionThatReturnsNull);
+	  }
+
+	  function createArrayOfTypeChecker(typeChecker) {
+	    function validate(props, propName, componentName, location, propFullName) {
+	      if (typeof typeChecker !== 'function') {
+	        return new PropTypeError('Property `' + propFullName + '` of component `' + componentName + '` has invalid PropType notation inside arrayOf.');
+	      }
+	      var propValue = props[propName];
+	      if (!Array.isArray(propValue)) {
+	        var propType = getPropType(propValue);
+	        return new PropTypeError('Invalid ' + location + ' `' + propFullName + '` of type ' + ('`' + propType + '` supplied to `' + componentName + '`, expected an array.'));
+	      }
+	      for (var i = 0; i < propValue.length; i++) {
+	        var error = typeChecker(propValue, i, componentName, location, propFullName + '[' + i + ']', ReactPropTypesSecret_1);
+	        if (error instanceof Error) {
+	          return error;
+	        }
+	      }
+	      return null;
+	    }
+	    return createChainableTypeChecker(validate);
+	  }
+
+	  function createElementTypeChecker() {
+	    function validate(props, propName, componentName, location, propFullName) {
+	      var propValue = props[propName];
+	      if (!isValidElement(propValue)) {
+	        var propType = getPropType(propValue);
+	        return new PropTypeError('Invalid ' + location + ' `' + propFullName + '` of type ' + ('`' + propType + '` supplied to `' + componentName + '`, expected a single ReactElement.'));
+	      }
+	      return null;
+	    }
+	    return createChainableTypeChecker(validate);
+	  }
+
+	  function createElementTypeTypeChecker() {
+	    function validate(props, propName, componentName, location, propFullName) {
+	      var propValue = props[propName];
+	      if (!reactIs.isValidElementType(propValue)) {
+	        var propType = getPropType(propValue);
+	        return new PropTypeError('Invalid ' + location + ' `' + propFullName + '` of type ' + ('`' + propType + '` supplied to `' + componentName + '`, expected a single ReactElement type.'));
+	      }
+	      return null;
+	    }
+	    return createChainableTypeChecker(validate);
+	  }
+
+	  function createInstanceTypeChecker(expectedClass) {
+	    function validate(props, propName, componentName, location, propFullName) {
+	      if (!(props[propName] instanceof expectedClass)) {
+	        var expectedClassName = expectedClass.name || ANONYMOUS;
+	        var actualClassName = getClassName(props[propName]);
+	        return new PropTypeError('Invalid ' + location + ' `' + propFullName + '` of type ' + ('`' + actualClassName + '` supplied to `' + componentName + '`, expected ') + ('instance of `' + expectedClassName + '`.'));
+	      }
+	      return null;
+	    }
+	    return createChainableTypeChecker(validate);
+	  }
+
+	  function createEnumTypeChecker(expectedValues) {
+	    if (!Array.isArray(expectedValues)) {
+	      {
+	        if (arguments.length > 1) {
+	          printWarning$1(
+	            'Invalid arguments supplied to oneOf, expected an array, got ' + arguments.length + ' arguments. ' +
+	            'A common mistake is to write oneOf(x, y, z) instead of oneOf([x, y, z]).'
+	          );
+	        } else {
+	          printWarning$1('Invalid argument supplied to oneOf, expected an array.');
+	        }
+	      }
+	      return emptyFunctionThatReturnsNull;
+	    }
+
+	    function validate(props, propName, componentName, location, propFullName) {
+	      var propValue = props[propName];
+	      for (var i = 0; i < expectedValues.length; i++) {
+	        if (is(propValue, expectedValues[i])) {
+	          return null;
+	        }
+	      }
+
+	      var valuesString = JSON.stringify(expectedValues, function replacer(key, value) {
+	        var type = getPreciseType(value);
+	        if (type === 'symbol') {
+	          return String(value);
+	        }
+	        return value;
+	      });
+	      return new PropTypeError('Invalid ' + location + ' `' + propFullName + '` of value `' + String(propValue) + '` ' + ('supplied to `' + componentName + '`, expected one of ' + valuesString + '.'));
+	    }
+	    return createChainableTypeChecker(validate);
+	  }
+
+	  function createObjectOfTypeChecker(typeChecker) {
+	    function validate(props, propName, componentName, location, propFullName) {
+	      if (typeof typeChecker !== 'function') {
+	        return new PropTypeError('Property `' + propFullName + '` of component `' + componentName + '` has invalid PropType notation inside objectOf.');
+	      }
+	      var propValue = props[propName];
+	      var propType = getPropType(propValue);
+	      if (propType !== 'object') {
+	        return new PropTypeError('Invalid ' + location + ' `' + propFullName + '` of type ' + ('`' + propType + '` supplied to `' + componentName + '`, expected an object.'));
+	      }
+	      for (var key in propValue) {
+	        if (has$1(propValue, key)) {
+	          var error = typeChecker(propValue, key, componentName, location, propFullName + '.' + key, ReactPropTypesSecret_1);
+	          if (error instanceof Error) {
+	            return error;
+	          }
+	        }
+	      }
+	      return null;
+	    }
+	    return createChainableTypeChecker(validate);
+	  }
+
+	  function createUnionTypeChecker(arrayOfTypeCheckers) {
+	    if (!Array.isArray(arrayOfTypeCheckers)) {
+	      printWarning$1('Invalid argument supplied to oneOfType, expected an instance of array.');
+	      return emptyFunctionThatReturnsNull;
+	    }
+
+	    for (var i = 0; i < arrayOfTypeCheckers.length; i++) {
+	      var checker = arrayOfTypeCheckers[i];
+	      if (typeof checker !== 'function') {
+	        printWarning$1(
+	          'Invalid argument supplied to oneOfType. Expected an array of check functions, but ' +
+	          'received ' + getPostfixForTypeWarning(checker) + ' at index ' + i + '.'
+	        );
+	        return emptyFunctionThatReturnsNull;
+	      }
+	    }
+
+	    function validate(props, propName, componentName, location, propFullName) {
+	      for (var i = 0; i < arrayOfTypeCheckers.length; i++) {
+	        var checker = arrayOfTypeCheckers[i];
+	        if (checker(props, propName, componentName, location, propFullName, ReactPropTypesSecret_1) == null) {
+	          return null;
+	        }
+	      }
+
+	      return new PropTypeError('Invalid ' + location + ' `' + propFullName + '` supplied to ' + ('`' + componentName + '`.'));
+	    }
+	    return createChainableTypeChecker(validate);
+	  }
+
+	  function createNodeChecker() {
+	    function validate(props, propName, componentName, location, propFullName) {
+	      if (!isNode(props[propName])) {
+	        return new PropTypeError('Invalid ' + location + ' `' + propFullName + '` supplied to ' + ('`' + componentName + '`, expected a ReactNode.'));
+	      }
+	      return null;
+	    }
+	    return createChainableTypeChecker(validate);
+	  }
+
+	  function createShapeTypeChecker(shapeTypes) {
+	    function validate(props, propName, componentName, location, propFullName) {
+	      var propValue = props[propName];
+	      var propType = getPropType(propValue);
+	      if (propType !== 'object') {
+	        return new PropTypeError('Invalid ' + location + ' `' + propFullName + '` of type `' + propType + '` ' + ('supplied to `' + componentName + '`, expected `object`.'));
+	      }
+	      for (var key in shapeTypes) {
+	        var checker = shapeTypes[key];
+	        if (!checker) {
+	          continue;
+	        }
+	        var error = checker(propValue, key, componentName, location, propFullName + '.' + key, ReactPropTypesSecret_1);
+	        if (error) {
+	          return error;
+	        }
+	      }
+	      return null;
+	    }
+	    return createChainableTypeChecker(validate);
+	  }
+
+	  function createStrictShapeTypeChecker(shapeTypes) {
+	    function validate(props, propName, componentName, location, propFullName) {
+	      var propValue = props[propName];
+	      var propType = getPropType(propValue);
+	      if (propType !== 'object') {
+	        return new PropTypeError('Invalid ' + location + ' `' + propFullName + '` of type `' + propType + '` ' + ('supplied to `' + componentName + '`, expected `object`.'));
+	      }
+	      // We need to check all keys in case some are required but missing from
+	      // props.
+	      var allKeys = objectAssign({}, props[propName], shapeTypes);
+	      for (var key in allKeys) {
+	        var checker = shapeTypes[key];
+	        if (!checker) {
+	          return new PropTypeError(
+	            'Invalid ' + location + ' `' + propFullName + '` key `' + key + '` supplied to `' + componentName + '`.' +
+	            '\nBad object: ' + JSON.stringify(props[propName], null, '  ') +
+	            '\nValid keys: ' +  JSON.stringify(Object.keys(shapeTypes), null, '  ')
+	          );
+	        }
+	        var error = checker(propValue, key, componentName, location, propFullName + '.' + key, ReactPropTypesSecret_1);
+	        if (error) {
+	          return error;
+	        }
+	      }
+	      return null;
+	    }
+
+	    return createChainableTypeChecker(validate);
+	  }
+
+	  function isNode(propValue) {
+	    switch (typeof propValue) {
+	      case 'number':
+	      case 'string':
+	      case 'undefined':
+	        return true;
+	      case 'boolean':
+	        return !propValue;
+	      case 'object':
+	        if (Array.isArray(propValue)) {
+	          return propValue.every(isNode);
+	        }
+	        if (propValue === null || isValidElement(propValue)) {
+	          return true;
+	        }
+
+	        var iteratorFn = getIteratorFn(propValue);
+	        if (iteratorFn) {
+	          var iterator = iteratorFn.call(propValue);
+	          var step;
+	          if (iteratorFn !== propValue.entries) {
+	            while (!(step = iterator.next()).done) {
+	              if (!isNode(step.value)) {
+	                return false;
+	              }
+	            }
+	          } else {
+	            // Iterator will provide entry [k,v] tuples rather than values.
+	            while (!(step = iterator.next()).done) {
+	              var entry = step.value;
+	              if (entry) {
+	                if (!isNode(entry[1])) {
+	                  return false;
+	                }
+	              }
+	            }
+	          }
+	        } else {
+	          return false;
+	        }
+
+	        return true;
+	      default:
+	        return false;
+	    }
+	  }
+
+	  function isSymbol(propType, propValue) {
+	    // Native Symbol.
+	    if (propType === 'symbol') {
+	      return true;
+	    }
+
+	    // falsy value can't be a Symbol
+	    if (!propValue) {
+	      return false;
+	    }
+
+	    // 19.4.3.5 Symbol.prototype[@@toStringTag] === 'Symbol'
+	    if (propValue['@@toStringTag'] === 'Symbol') {
+	      return true;
+	    }
+
+	    // Fallback for non-spec compliant Symbols which are polyfilled.
+	    if (typeof Symbol === 'function' && propValue instanceof Symbol) {
+	      return true;
+	    }
+
+	    return false;
+	  }
+
+	  // Equivalent of `typeof` but with special handling for array and regexp.
+	  function getPropType(propValue) {
+	    var propType = typeof propValue;
+	    if (Array.isArray(propValue)) {
+	      return 'array';
+	    }
+	    if (propValue instanceof RegExp) {
+	      // Old webkits (at least until Android 4.0) return 'function' rather than
+	      // 'object' for typeof a RegExp. We'll normalize this here so that /bla/
+	      // passes PropTypes.object.
+	      return 'object';
+	    }
+	    if (isSymbol(propType, propValue)) {
+	      return 'symbol';
+	    }
+	    return propType;
+	  }
+
+	  // This handles more types than `getPropType`. Only used for error messages.
+	  // See `createPrimitiveTypeChecker`.
+	  function getPreciseType(propValue) {
+	    if (typeof propValue === 'undefined' || propValue === null) {
+	      return '' + propValue;
+	    }
+	    var propType = getPropType(propValue);
+	    if (propType === 'object') {
+	      if (propValue instanceof Date) {
+	        return 'date';
+	      } else if (propValue instanceof RegExp) {
+	        return 'regexp';
+	      }
+	    }
+	    return propType;
+	  }
+
+	  // Returns a string that is postfixed to a warning about an invalid type.
+	  // For example, "undefined" or "of type array"
+	  function getPostfixForTypeWarning(value) {
+	    var type = getPreciseType(value);
+	    switch (type) {
+	      case 'array':
+	      case 'object':
+	        return 'an ' + type;
+	      case 'boolean':
+	      case 'date':
+	      case 'regexp':
+	        return 'a ' + type;
+	      default:
+	        return type;
+	    }
+	  }
+
+	  // Returns class name of the object, if any.
+	  function getClassName(propValue) {
+	    if (!propValue.constructor || !propValue.constructor.name) {
+	      return ANONYMOUS;
+	    }
+	    return propValue.constructor.name;
+	  }
+
+	  ReactPropTypes.checkPropTypes = checkPropTypes_1;
+	  ReactPropTypes.resetWarningCache = checkPropTypes_1.resetWarningCache;
+	  ReactPropTypes.PropTypes = ReactPropTypes;
+
+	  return ReactPropTypes;
+	};
+
+	var propTypes = createCommonjsModule(function (module) {
+	/**
+	 * Copyright (c) 2013-present, Facebook, Inc.
+	 *
+	 * This source code is licensed under the MIT license found in the
+	 * LICENSE file in the root directory of this source tree.
+	 */
+
+	{
+	  var ReactIs = reactIs;
+
+	  // By explicitly using `prop-types` you are opting into new development behavior.
+	  // http://fb.me/prop-types-in-prod
+	  var throwOnDirectAccess = true;
+	  module.exports = factoryWithTypeCheckers(ReactIs.isElement, throwOnDirectAccess);
+	}
+	});
+
+	var classnames = createCommonjsModule(function (module) {
+	/*!
+	  Copyright (c) 2017 Jed Watson.
+	  Licensed under the MIT License (MIT), see
+	  http://jedwatson.github.io/classnames
+	*/
+	/* global define */
+
+	(function () {
+
+		var hasOwn = {}.hasOwnProperty;
+
+		function classNames () {
+			var classes = [];
+
+			for (var i = 0; i < arguments.length; i++) {
+				var arg = arguments[i];
+				if (!arg) continue;
+
+				var argType = typeof arg;
+
+				if (argType === 'string' || argType === 'number') {
+					classes.push(arg);
+				} else if (Array.isArray(arg) && arg.length) {
+					var inner = classNames.apply(null, arg);
+					if (inner) {
+						classes.push(inner);
+					}
+				} else if (argType === 'object') {
+					for (var key in arg) {
+						if (hasOwn.call(arg, key) && arg[key]) {
+							classes.push(key);
+						}
+					}
+				}
+			}
+
+			return classes.join(' ');
+		}
+
+		if (module.exports) {
+			classNames.default = classNames;
+			module.exports = classNames;
+		} else {
+			window.classNames = classNames;
+		}
+	}());
+	});
+
+	/**
+	 * Copyright (c) 2013-present, Facebook, Inc.
+	 *
+	 * This source code is licensed under the MIT license found in the
+	 * LICENSE file in the root directory of this source tree.
+	 */
+
+	function componentWillMount() {
+	  // Call this.constructor.gDSFP to support sub-classes.
+	  var state = this.constructor.getDerivedStateFromProps(this.props, this.state);
+	  if (state !== null && state !== undefined) {
+	    this.setState(state);
+	  }
+	}
+
+	function componentWillReceiveProps(nextProps) {
+	  // Call this.constructor.gDSFP to support sub-classes.
+	  // Use the setState() updater to ensure state isn't stale in certain edge cases.
+	  function updater(prevState) {
+	    var state = this.constructor.getDerivedStateFromProps(nextProps, prevState);
+	    return state !== null && state !== undefined ? state : null;
+	  }
+	  // Binding "this" is important for shallow renderer support.
+	  this.setState(updater.bind(this));
+	}
+
+	function componentWillUpdate(nextProps, nextState) {
+	  try {
+	    var prevProps = this.props;
+	    var prevState = this.state;
+	    this.props = nextProps;
+	    this.state = nextState;
+	    this.__reactInternalSnapshotFlag = true;
+	    this.__reactInternalSnapshot = this.getSnapshotBeforeUpdate(
+	      prevProps,
+	      prevState
+	    );
+	  } finally {
+	    this.props = prevProps;
+	    this.state = prevState;
+	  }
+	}
+
+	// React may warn about cWM/cWRP/cWU methods being deprecated.
+	// Add a flag to suppress these warnings for this special case.
+	componentWillMount.__suppressDeprecationWarning = true;
+	componentWillReceiveProps.__suppressDeprecationWarning = true;
+	componentWillUpdate.__suppressDeprecationWarning = true;
+
+	function polyfill(Component) {
+	  var prototype = Component.prototype;
+
+	  if (!prototype || !prototype.isReactComponent) {
+	    throw new Error('Can only polyfill class components');
+	  }
+
+	  if (
+	    typeof Component.getDerivedStateFromProps !== 'function' &&
+	    typeof prototype.getSnapshotBeforeUpdate !== 'function'
+	  ) {
+	    return Component;
+	  }
+
+	  // If new component APIs are defined, "unsafe" lifecycles won't be called.
+	  // Error if any of these lifecycles are present,
+	  // Because they would work differently between older and newer (16.3+) versions of React.
+	  var foundWillMountName = null;
+	  var foundWillReceivePropsName = null;
+	  var foundWillUpdateName = null;
+	  if (typeof prototype.componentWillMount === 'function') {
+	    foundWillMountName = 'componentWillMount';
+	  } else if (typeof prototype.UNSAFE_componentWillMount === 'function') {
+	    foundWillMountName = 'UNSAFE_componentWillMount';
+	  }
+	  if (typeof prototype.componentWillReceiveProps === 'function') {
+	    foundWillReceivePropsName = 'componentWillReceiveProps';
+	  } else if (typeof prototype.UNSAFE_componentWillReceiveProps === 'function') {
+	    foundWillReceivePropsName = 'UNSAFE_componentWillReceiveProps';
+	  }
+	  if (typeof prototype.componentWillUpdate === 'function') {
+	    foundWillUpdateName = 'componentWillUpdate';
+	  } else if (typeof prototype.UNSAFE_componentWillUpdate === 'function') {
+	    foundWillUpdateName = 'UNSAFE_componentWillUpdate';
+	  }
+	  if (
+	    foundWillMountName !== null ||
+	    foundWillReceivePropsName !== null ||
+	    foundWillUpdateName !== null
+	  ) {
+	    var componentName = Component.displayName || Component.name;
+	    var newApiName =
+	      typeof Component.getDerivedStateFromProps === 'function'
+	        ? 'getDerivedStateFromProps()'
+	        : 'getSnapshotBeforeUpdate()';
+
+	    throw Error(
+	      'Unsafe legacy lifecycles will not be called for components using new component APIs.\n\n' +
+	        componentName +
+	        ' uses ' +
+	        newApiName +
+	        ' but also contains the following legacy lifecycles:' +
+	        (foundWillMountName !== null ? '\n  ' + foundWillMountName : '') +
+	        (foundWillReceivePropsName !== null
+	          ? '\n  ' + foundWillReceivePropsName
+	          : '') +
+	        (foundWillUpdateName !== null ? '\n  ' + foundWillUpdateName : '') +
+	        '\n\nThe above lifecycles should be removed. Learn more about this warning here:\n' +
+	        'https://fb.me/react-async-component-lifecycle-hooks'
+	    );
+	  }
+
+	  // React <= 16.2 does not support static getDerivedStateFromProps.
+	  // As a workaround, use cWM and cWRP to invoke the new static lifecycle.
+	  // Newer versions of React will ignore these lifecycles if gDSFP exists.
+	  if (typeof Component.getDerivedStateFromProps === 'function') {
+	    prototype.componentWillMount = componentWillMount;
+	    prototype.componentWillReceiveProps = componentWillReceiveProps;
+	  }
+
+	  // React <= 16.2 does not support getSnapshotBeforeUpdate.
+	  // As a workaround, use cWU to invoke the new lifecycle.
+	  // Newer versions of React will ignore that lifecycle if gSBU exists.
+	  if (typeof prototype.getSnapshotBeforeUpdate === 'function') {
+	    if (typeof prototype.componentDidUpdate !== 'function') {
+	      throw new Error(
+	        'Cannot polyfill getSnapshotBeforeUpdate() for components that do not define componentDidUpdate() on the prototype'
+	      );
+	    }
+
+	    prototype.componentWillUpdate = componentWillUpdate;
+
+	    var componentDidUpdate = prototype.componentDidUpdate;
+
+	    prototype.componentDidUpdate = function componentDidUpdatePolyfill(
+	      prevProps,
+	      prevState,
+	      maybeSnapshot
+	    ) {
+	      // 16.3+ will not execute our will-update method;
+	      // It will pass a snapshot value to did-update though.
+	      // Older versions will require our polyfilled will-update value.
+	      // We need to handle both cases, but can't just check for the presence of "maybeSnapshot",
+	      // Because for <= 15.x versions this might be a "prevContext" object.
+	      // We also can't just check "__reactInternalSnapshot",
+	      // Because get-snapshot might return a falsy value.
+	      // So check for the explicit __reactInternalSnapshotFlag flag to determine behavior.
+	      var snapshot = this.__reactInternalSnapshotFlag
+	        ? this.__reactInternalSnapshot
+	        : maybeSnapshot;
+
+	      componentDidUpdate.call(this, prevProps, prevState, snapshot);
+	    };
+	  }
+
+	  return Component;
+	}
+
+	var reactLifecyclesCompat_es = /*#__PURE__*/Object.freeze({
+		polyfill: polyfill
+	});
+
+	var ChildMapping = createCommonjsModule(function (module, exports) {
+
+	exports.__esModule = true;
+	exports.getChildMapping = getChildMapping;
+	exports.mergeChildMappings = mergeChildMappings;
+	exports.getInitialChildMapping = getInitialChildMapping;
+	exports.getNextChildMapping = getNextChildMapping;
+
+
+
+	/**
+	 * Given `this.props.children`, return an object mapping key to child.
+	 *
+	 * @param {*} children `this.props.children`
+	 * @return {object} Mapping of key to child
+	 */
+	function getChildMapping(children, mapFn) {
+	  var mapper = function mapper(child) {
+	    return mapFn && (0, react.isValidElement)(child) ? mapFn(child) : child;
+	  };
+
+	  var result = Object.create(null);
+	  if (children) react.Children.map(children, function (c) {
+	    return c;
+	  }).forEach(function (child) {
+	    // run the map function here instead so that the key is the computed one
+	    result[child.key] = mapper(child);
+	  });
+	  return result;
+	}
+	/**
+	 * When you're adding or removing children some may be added or removed in the
+	 * same render pass. We want to show *both* since we want to simultaneously
+	 * animate elements in and out. This function takes a previous set of keys
+	 * and a new set of keys and merges them with its best guess of the correct
+	 * ordering. In the future we may expose some of the utilities in
+	 * ReactMultiChild to make this easy, but for now React itself does not
+	 * directly have this concept of the union of prevChildren and nextChildren
+	 * so we implement it here.
+	 *
+	 * @param {object} prev prev children as returned from
+	 * `ReactTransitionChildMapping.getChildMapping()`.
+	 * @param {object} next next children as returned from
+	 * `ReactTransitionChildMapping.getChildMapping()`.
+	 * @return {object} a key set that contains all keys in `prev` and all keys
+	 * in `next` in a reasonable order.
+	 */
+
+
+	function mergeChildMappings(prev, next) {
+	  prev = prev || {};
+	  next = next || {};
+
+	  function getValueForKey(key) {
+	    return key in next ? next[key] : prev[key];
+	  } // For each key of `next`, the list of keys to insert before that key in
+	  // the combined list
+
+
+	  var nextKeysPending = Object.create(null);
+	  var pendingKeys = [];
+
+	  for (var prevKey in prev) {
+	    if (prevKey in next) {
+	      if (pendingKeys.length) {
+	        nextKeysPending[prevKey] = pendingKeys;
+	        pendingKeys = [];
+	      }
+	    } else {
+	      pendingKeys.push(prevKey);
+	    }
+	  }
+
+	  var i;
+	  var childMapping = {};
+
+	  for (var nextKey in next) {
+	    if (nextKeysPending[nextKey]) {
+	      for (i = 0; i < nextKeysPending[nextKey].length; i++) {
+	        var pendingNextKey = nextKeysPending[nextKey][i];
+	        childMapping[nextKeysPending[nextKey][i]] = getValueForKey(pendingNextKey);
+	      }
+	    }
+
+	    childMapping[nextKey] = getValueForKey(nextKey);
+	  } // Finally, add the keys which didn't appear before any key in `next`
+
+
+	  for (i = 0; i < pendingKeys.length; i++) {
+	    childMapping[pendingKeys[i]] = getValueForKey(pendingKeys[i]);
+	  }
+
+	  return childMapping;
+	}
+
+	function getProp(child, prop, props) {
+	  return props[prop] != null ? props[prop] : child.props[prop];
+	}
+
+	function getInitialChildMapping(props, onExited) {
+	  return getChildMapping(props.children, function (child) {
+	    return (0, react.cloneElement)(child, {
+	      onExited: onExited.bind(null, child),
+	      in: true,
+	      appear: getProp(child, 'appear', props),
+	      enter: getProp(child, 'enter', props),
+	      exit: getProp(child, 'exit', props)
+	    });
+	  });
+	}
+
+	function getNextChildMapping(nextProps, prevChildMapping, onExited) {
+	  var nextChildMapping = getChildMapping(nextProps.children);
+	  var children = mergeChildMappings(prevChildMapping, nextChildMapping);
+	  Object.keys(children).forEach(function (key) {
+	    var child = children[key];
+	    if (!(0, react.isValidElement)(child)) return;
+	    var hasPrev = key in prevChildMapping;
+	    var hasNext = key in nextChildMapping;
+	    var prevChild = prevChildMapping[key];
+	    var isLeaving = (0, react.isValidElement)(prevChild) && !prevChild.props.in; // item is new (entering)
+
+	    if (hasNext && (!hasPrev || isLeaving)) {
+	      // console.log('entering', key)
+	      children[key] = (0, react.cloneElement)(child, {
+	        onExited: onExited.bind(null, child),
+	        in: true,
+	        exit: getProp(child, 'exit', nextProps),
+	        enter: getProp(child, 'enter', nextProps)
+	      });
+	    } else if (!hasNext && hasPrev && !isLeaving) {
+	      // item is old (exiting)
+	      // console.log('leaving', key)
+	      children[key] = (0, react.cloneElement)(child, {
+	        in: false
+	      });
+	    } else if (hasNext && hasPrev && (0, react.isValidElement)(prevChild)) {
+	      // item hasn't changed transition states
+	      // copy over the last transition props;
+	      // console.log('unchanged', key)
+	      children[key] = (0, react.cloneElement)(child, {
+	        onExited: onExited.bind(null, child),
+	        in: prevChild.props.in,
+	        exit: getProp(child, 'exit', nextProps),
+	        enter: getProp(child, 'enter', nextProps)
+	      });
+	    }
+	  });
+	  return children;
+	}
+	});
+
+	unwrapExports(ChildMapping);
+	var ChildMapping_1 = ChildMapping.getChildMapping;
+	var ChildMapping_2 = ChildMapping.mergeChildMappings;
+	var ChildMapping_3 = ChildMapping.getInitialChildMapping;
+	var ChildMapping_4 = ChildMapping.getNextChildMapping;
+
+	var TransitionGroup_1 = createCommonjsModule(function (module, exports) {
+
+	exports.__esModule = true;
+	exports.default = void 0;
+
+	var _propTypes = _interopRequireDefault(propTypes);
+
+	var _react = _interopRequireDefault(react);
+
+
+
+
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function _objectWithoutPropertiesLoose(source, excluded) { if (source == null) return {}; var target = {}; var sourceKeys = Object.keys(source); var key, i; for (i = 0; i < sourceKeys.length; i++) { key = sourceKeys[i]; if (excluded.indexOf(key) >= 0) continue; target[key] = source[key]; } return target; }
+
+	function _extends() { _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends.apply(this, arguments); }
+
+	function _inheritsLoose(subClass, superClass) { subClass.prototype = Object.create(superClass.prototype); subClass.prototype.constructor = subClass; subClass.__proto__ = superClass; }
+
+	function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+	var values = Object.values || function (obj) {
+	  return Object.keys(obj).map(function (k) {
+	    return obj[k];
+	  });
+	};
+
+	var defaultProps = {
+	  component: 'div',
+	  childFactory: function childFactory(child) {
+	    return child;
+	  }
+	  /**
+	   * The `<TransitionGroup>` component manages a set of transition components
+	   * (`<Transition>` and `<CSSTransition>`) in a list. Like with the transition
+	   * components, `<TransitionGroup>` is a state machine for managing the mounting
+	   * and unmounting of components over time.
+	   *
+	   * Consider the example below. As items are removed or added to the TodoList the
+	   * `in` prop is toggled automatically by the `<TransitionGroup>`.
+	   *
+	   * Note that `<TransitionGroup>`  does not define any animation behavior!
+	   * Exactly _how_ a list item animates is up to the individual transition
+	   * component. This means you can mix and match animations across different list
+	   * items.
+	   */
+
+	};
+
+	var TransitionGroup =
+	/*#__PURE__*/
+	function (_React$Component) {
+	  _inheritsLoose(TransitionGroup, _React$Component);
+
+	  function TransitionGroup(props, context) {
+	    var _this;
+
+	    _this = _React$Component.call(this, props, context) || this;
+
+	    var handleExited = _this.handleExited.bind(_assertThisInitialized(_assertThisInitialized(_this))); // Initial children should all be entering, dependent on appear
+
+
+	    _this.state = {
+	      handleExited: handleExited,
+	      firstRender: true
+	    };
+	    return _this;
+	  }
+
+	  var _proto = TransitionGroup.prototype;
+
+	  _proto.getChildContext = function getChildContext() {
+	    return {
+	      transitionGroup: {
+	        isMounting: !this.appeared
+	      }
+	    };
+	  };
+
+	  _proto.componentDidMount = function componentDidMount() {
+	    this.appeared = true;
+	    this.mounted = true;
+	  };
+
+	  _proto.componentWillUnmount = function componentWillUnmount() {
+	    this.mounted = false;
+	  };
+
+	  TransitionGroup.getDerivedStateFromProps = function getDerivedStateFromProps(nextProps, _ref) {
+	    var prevChildMapping = _ref.children,
+	        handleExited = _ref.handleExited,
+	        firstRender = _ref.firstRender;
+	    return {
+	      children: firstRender ? (0, ChildMapping.getInitialChildMapping)(nextProps, handleExited) : (0, ChildMapping.getNextChildMapping)(nextProps, prevChildMapping, handleExited),
+	      firstRender: false
+	    };
+	  };
+
+	  _proto.handleExited = function handleExited(child, node) {
+	    var currentChildMapping = (0, ChildMapping.getChildMapping)(this.props.children);
+	    if (child.key in currentChildMapping) return;
+
+	    if (child.props.onExited) {
+	      child.props.onExited(node);
+	    }
+
+	    if (this.mounted) {
+	      this.setState(function (state) {
+	        var children = _extends({}, state.children);
+
+	        delete children[child.key];
+	        return {
+	          children: children
+	        };
+	      });
+	    }
+	  };
+
+	  _proto.render = function render() {
+	    var _this$props = this.props,
+	        Component = _this$props.component,
+	        childFactory = _this$props.childFactory,
+	        props = _objectWithoutPropertiesLoose(_this$props, ["component", "childFactory"]);
+
+	    var children = values(this.state.children).map(childFactory);
+	    delete props.appear;
+	    delete props.enter;
+	    delete props.exit;
+
+	    if (Component === null) {
+	      return children;
+	    }
+
+	    return _react.default.createElement(Component, props, children);
+	  };
+
+	  return TransitionGroup;
+	}(_react.default.Component);
+
+	TransitionGroup.childContextTypes = {
+	  transitionGroup: _propTypes.default.object.isRequired
+	};
+	TransitionGroup.propTypes = {
+	  /**
+	   * `<TransitionGroup>` renders a `<div>` by default. You can change this
+	   * behavior by providing a `component` prop.
+	   * If you use React v16+ and would like to avoid a wrapping `<div>` element
+	   * you can pass in `component={null}`. This is useful if the wrapping div
+	   * borks your css styles.
+	   */
+	  component: _propTypes.default.any,
+
+	  /**
+	   * A set of `<Transition>` components, that are toggled `in` and out as they
+	   * leave. the `<TransitionGroup>` will inject specific transition props, so
+	   * remember to spread them through if you are wrapping the `<Transition>` as
+	   * with our `<Fade>` example.
+	   *
+	   * While this component is meant for multiple `Transition` or `CSSTransition`
+	   * children, sometimes you may want to have a single transition child with
+	   * content that you want to be transitioned out and in when you change it
+	   * (e.g. routes, images etc.) In that case you can change the `key` prop of
+	   * the transition child as you change its content, this will cause
+	   * `TransitionGroup` to transition the child out and back in.
+	   */
+	  children: _propTypes.default.node,
+
+	  /**
+	   * A convenience prop that enables or disables appear animations
+	   * for all children. Note that specifying this will override any defaults set
+	   * on individual children Transitions.
+	   */
+	  appear: _propTypes.default.bool,
+
+	  /**
+	   * A convenience prop that enables or disables enter animations
+	   * for all children. Note that specifying this will override any defaults set
+	   * on individual children Transitions.
+	   */
+	  enter: _propTypes.default.bool,
+
+	  /**
+	   * A convenience prop that enables or disables exit animations
+	   * for all children. Note that specifying this will override any defaults set
+	   * on individual children Transitions.
+	   */
+	  exit: _propTypes.default.bool,
+
+	  /**
+	   * You may need to apply reactive updates to a child as it is exiting.
+	   * This is generally done by using `cloneElement` however in the case of an exiting
+	   * child the element has already been removed and not accessible to the consumer.
+	   *
+	   * If you do need to update a child as it leaves you can provide a `childFactory`
+	   * to wrap every child, even the ones that are leaving.
+	   *
+	   * @type Function(child: ReactElement) -> ReactElement
+	   */
+	  childFactory: _propTypes.default.func
+	};
+	TransitionGroup.defaultProps = defaultProps;
+
+	var _default = (0, reactLifecyclesCompat_es.polyfill)(TransitionGroup);
+
+	exports.default = _default;
+	module.exports = exports["default"];
+	});
+
+	var TransitionGroup = unwrapExports(TransitionGroup_1);
+
+	var PropTypes = createCommonjsModule(function (module, exports) {
+
+	exports.__esModule = true;
+	exports.classNamesShape = exports.timeoutsShape = void 0;
+
+	var _propTypes = _interopRequireDefault(propTypes);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	var timeoutsShape = _propTypes.default.oneOfType([_propTypes.default.number, _propTypes.default.shape({
+	  enter: _propTypes.default.number,
+	  exit: _propTypes.default.number,
+	  appear: _propTypes.default.number
+	}).isRequired]);
+	exports.timeoutsShape = timeoutsShape;
+	var classNamesShape = _propTypes.default.oneOfType([_propTypes.default.string, _propTypes.default.shape({
+	  enter: _propTypes.default.string,
+	  exit: _propTypes.default.string,
+	  active: _propTypes.default.string
+	}), _propTypes.default.shape({
+	  enter: _propTypes.default.string,
+	  enterDone: _propTypes.default.string,
+	  enterActive: _propTypes.default.string,
+	  exit: _propTypes.default.string,
+	  exitDone: _propTypes.default.string,
+	  exitActive: _propTypes.default.string
+	})]);
+	exports.classNamesShape = classNamesShape;
+	});
+
+	unwrapExports(PropTypes);
+	var PropTypes_1 = PropTypes.classNamesShape;
+	var PropTypes_2 = PropTypes.timeoutsShape;
+
+	var Transition_1 = createCommonjsModule(function (module, exports) {
+
+	exports.__esModule = true;
+	exports.default = exports.EXITING = exports.ENTERED = exports.ENTERING = exports.EXITED = exports.UNMOUNTED = void 0;
+
+	var PropTypes$1 = _interopRequireWildcard(propTypes);
+
+	var _react = _interopRequireDefault(react);
+
+	var _reactDom = _interopRequireDefault(reactDom);
+
+
+
+
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
+
+	function _objectWithoutPropertiesLoose(source, excluded) { if (source == null) return {}; var target = {}; var sourceKeys = Object.keys(source); var key, i; for (i = 0; i < sourceKeys.length; i++) { key = sourceKeys[i]; if (excluded.indexOf(key) >= 0) continue; target[key] = source[key]; } return target; }
+
+	function _inheritsLoose(subClass, superClass) { subClass.prototype = Object.create(superClass.prototype); subClass.prototype.constructor = subClass; subClass.__proto__ = superClass; }
+
+	var UNMOUNTED = 'unmounted';
+	exports.UNMOUNTED = UNMOUNTED;
+	var EXITED = 'exited';
+	exports.EXITED = EXITED;
+	var ENTERING = 'entering';
+	exports.ENTERING = ENTERING;
+	var ENTERED = 'entered';
+	exports.ENTERED = ENTERED;
+	var EXITING = 'exiting';
+	/**
+	 * The Transition component lets you describe a transition from one component
+	 * state to another _over time_ with a simple declarative API. Most commonly
+	 * it's used to animate the mounting and unmounting of a component, but can also
+	 * be used to describe in-place transition states as well.
+	 *
+	 * ---
+	 *
+	 * **Note**: `Transition` is a platform-agnostic base component. If you're using
+	 * transitions in CSS, you'll probably want to use
+	 * [`CSSTransition`](https://reactcommunity.org/react-transition-group/css-transition)
+	 * instead. It inherits all the features of `Transition`, but contains
+	 * additional features necessary to play nice with CSS transitions (hence the
+	 * name of the component).
+	 *
+	 * ---
+	 *
+	 * By default the `Transition` component does not alter the behavior of the
+	 * component it renders, it only tracks "enter" and "exit" states for the
+	 * components. It's up to you to give meaning and effect to those states. For
+	 * example we can add styles to a component when it enters or exits:
+	 *
+	 * ```jsx
+	 * import { Transition } from 'react-transition-group';
+	 *
+	 * const duration = 300;
+	 *
+	 * const defaultStyle = {
+	 *   transition: `opacity ${duration}ms ease-in-out`,
+	 *   opacity: 0,
+	 * }
+	 *
+	 * const transitionStyles = {
+	 *   entering: { opacity: 0 },
+	 *   entered:  { opacity: 1 },
+	 * };
+	 *
+	 * const Fade = ({ in: inProp }) => (
+	 *   <Transition in={inProp} timeout={duration}>
+	 *     {state => (
+	 *       <div style={{
+	 *         ...defaultStyle,
+	 *         ...transitionStyles[state]
+	 *       }}>
+	 *         I'm a fade Transition!
+	 *       </div>
+	 *     )}
+	 *   </Transition>
+	 * );
+	 * ```
+	 *
+	 * There are 4 main states a Transition can be in:
+	 *  - `'entering'`
+	 *  - `'entered'`
+	 *  - `'exiting'`
+	 *  - `'exited'`
+	 *
+	 * Transition state is toggled via the `in` prop. When `true` the component
+	 * begins the "Enter" stage. During this stage, the component will shift from
+	 * its current transition state, to `'entering'` for the duration of the
+	 * transition and then to the `'entered'` stage once it's complete. Let's take
+	 * the following example (we'll use the
+	 * [useState](https://reactjs.org/docs/hooks-reference.html#usestate) hook):
+	 *
+	 * ```jsx
+	 * function App() {
+	 *   const [inProp, setInProp] = useState(false);
+	 *   return (
+	 *     <div>
+	 *       <Transition in={inProp} timeout={500}>
+	 *         {state => (
+	 *           // ...
+	 *         )}
+	 *       </Transition>
+	 *       <button onClick={() => setInProp(true)}>
+	 *         Click to Enter
+	 *       </button>
+	 *     </div>
+	 *   );
+	 * }
+	 * ```
+	 *
+	 * When the button is clicked the component will shift to the `'entering'` state
+	 * and stay there for 500ms (the value of `timeout`) before it finally switches
+	 * to `'entered'`.
+	 *
+	 * When `in` is `false` the same thing happens except the state moves from
+	 * `'exiting'` to `'exited'`.
+	 */
+
+	exports.EXITING = EXITING;
+
+	var Transition =
+	/*#__PURE__*/
+	function (_React$Component) {
+	  _inheritsLoose(Transition, _React$Component);
+
+	  function Transition(props, context) {
+	    var _this;
+
+	    _this = _React$Component.call(this, props, context) || this;
+	    var parentGroup = context.transitionGroup; // In the context of a TransitionGroup all enters are really appears
+
+	    var appear = parentGroup && !parentGroup.isMounting ? props.enter : props.appear;
+	    var initialStatus;
+	    _this.appearStatus = null;
+
+	    if (props.in) {
+	      if (appear) {
+	        initialStatus = EXITED;
+	        _this.appearStatus = ENTERING;
+	      } else {
+	        initialStatus = ENTERED;
+	      }
+	    } else {
+	      if (props.unmountOnExit || props.mountOnEnter) {
+	        initialStatus = UNMOUNTED;
+	      } else {
+	        initialStatus = EXITED;
+	      }
+	    }
+
+	    _this.state = {
+	      status: initialStatus
+	    };
+	    _this.nextCallback = null;
+	    return _this;
+	  }
+
+	  var _proto = Transition.prototype;
+
+	  _proto.getChildContext = function getChildContext() {
+	    return {
+	      transitionGroup: null // allows for nested Transitions
+
+	    };
+	  };
+
+	  Transition.getDerivedStateFromProps = function getDerivedStateFromProps(_ref, prevState) {
+	    var nextIn = _ref.in;
+
+	    if (nextIn && prevState.status === UNMOUNTED) {
+	      return {
+	        status: EXITED
+	      };
+	    }
+
+	    return null;
+	  }; // getSnapshotBeforeUpdate(prevProps) {
+	  //   let nextStatus = null
+	  //   if (prevProps !== this.props) {
+	  //     const { status } = this.state
+	  //     if (this.props.in) {
+	  //       if (status !== ENTERING && status !== ENTERED) {
+	  //         nextStatus = ENTERING
+	  //       }
+	  //     } else {
+	  //       if (status === ENTERING || status === ENTERED) {
+	  //         nextStatus = EXITING
+	  //       }
+	  //     }
+	  //   }
+	  //   return { nextStatus }
+	  // }
+
+
+	  _proto.componentDidMount = function componentDidMount() {
+	    this.updateStatus(true, this.appearStatus);
+	  };
+
+	  _proto.componentDidUpdate = function componentDidUpdate(prevProps) {
+	    var nextStatus = null;
+
+	    if (prevProps !== this.props) {
+	      var status = this.state.status;
+
+	      if (this.props.in) {
+	        if (status !== ENTERING && status !== ENTERED) {
+	          nextStatus = ENTERING;
+	        }
+	      } else {
+	        if (status === ENTERING || status === ENTERED) {
+	          nextStatus = EXITING;
+	        }
+	      }
+	    }
+
+	    this.updateStatus(false, nextStatus);
+	  };
+
+	  _proto.componentWillUnmount = function componentWillUnmount() {
+	    this.cancelNextCallback();
+	  };
+
+	  _proto.getTimeouts = function getTimeouts() {
+	    var timeout = this.props.timeout;
+	    var exit, enter, appear;
+	    exit = enter = appear = timeout;
+
+	    if (timeout != null && typeof timeout !== 'number') {
+	      exit = timeout.exit;
+	      enter = timeout.enter; // TODO: remove fallback for next major
+
+	      appear = timeout.appear !== undefined ? timeout.appear : enter;
+	    }
+
+	    return {
+	      exit: exit,
+	      enter: enter,
+	      appear: appear
+	    };
+	  };
+
+	  _proto.updateStatus = function updateStatus(mounting, nextStatus) {
+	    if (mounting === void 0) {
+	      mounting = false;
+	    }
+
+	    if (nextStatus !== null) {
+	      // nextStatus will always be ENTERING or EXITING.
+	      this.cancelNextCallback();
+
+	      var node = _reactDom.default.findDOMNode(this);
+
+	      if (nextStatus === ENTERING) {
+	        this.performEnter(node, mounting);
+	      } else {
+	        this.performExit(node);
+	      }
+	    } else if (this.props.unmountOnExit && this.state.status === EXITED) {
+	      this.setState({
+	        status: UNMOUNTED
+	      });
+	    }
+	  };
+
+	  _proto.performEnter = function performEnter(node, mounting) {
+	    var _this2 = this;
+
+	    var enter = this.props.enter;
+	    var appearing = this.context.transitionGroup ? this.context.transitionGroup.isMounting : mounting;
+	    var timeouts = this.getTimeouts();
+	    var enterTimeout = appearing ? timeouts.appear : timeouts.enter; // no enter animation skip right to ENTERED
+	    // if we are mounting and running this it means appear _must_ be set
+
+	    if (!mounting && !enter) {
+	      this.safeSetState({
+	        status: ENTERED
+	      }, function () {
+	        _this2.props.onEntered(node);
+	      });
+	      return;
+	    }
+
+	    this.props.onEnter(node, appearing);
+	    this.safeSetState({
+	      status: ENTERING
+	    }, function () {
+	      _this2.props.onEntering(node, appearing);
+
+	      _this2.onTransitionEnd(node, enterTimeout, function () {
+	        _this2.safeSetState({
+	          status: ENTERED
+	        }, function () {
+	          _this2.props.onEntered(node, appearing);
+	        });
+	      });
+	    });
+	  };
+
+	  _proto.performExit = function performExit(node) {
+	    var _this3 = this;
+
+	    var exit = this.props.exit;
+	    var timeouts = this.getTimeouts(); // no exit animation skip right to EXITED
+
+	    if (!exit) {
+	      this.safeSetState({
+	        status: EXITED
+	      }, function () {
+	        _this3.props.onExited(node);
+	      });
+	      return;
+	    }
+
+	    this.props.onExit(node);
+	    this.safeSetState({
+	      status: EXITING
+	    }, function () {
+	      _this3.props.onExiting(node);
+
+	      _this3.onTransitionEnd(node, timeouts.exit, function () {
+	        _this3.safeSetState({
+	          status: EXITED
+	        }, function () {
+	          _this3.props.onExited(node);
+	        });
+	      });
+	    });
+	  };
+
+	  _proto.cancelNextCallback = function cancelNextCallback() {
+	    if (this.nextCallback !== null) {
+	      this.nextCallback.cancel();
+	      this.nextCallback = null;
+	    }
+	  };
+
+	  _proto.safeSetState = function safeSetState(nextState, callback) {
+	    // This shouldn't be necessary, but there are weird race conditions with
+	    // setState callbacks and unmounting in testing, so always make sure that
+	    // we can cancel any pending setState callbacks after we unmount.
+	    callback = this.setNextCallback(callback);
+	    this.setState(nextState, callback);
+	  };
+
+	  _proto.setNextCallback = function setNextCallback(callback) {
+	    var _this4 = this;
+
+	    var active = true;
+
+	    this.nextCallback = function (event) {
+	      if (active) {
+	        active = false;
+	        _this4.nextCallback = null;
+	        callback(event);
+	      }
+	    };
+
+	    this.nextCallback.cancel = function () {
+	      active = false;
+	    };
+
+	    return this.nextCallback;
+	  };
+
+	  _proto.onTransitionEnd = function onTransitionEnd(node, timeout, handler) {
+	    this.setNextCallback(handler);
+	    var doesNotHaveTimeoutOrListener = timeout == null && !this.props.addEndListener;
+
+	    if (!node || doesNotHaveTimeoutOrListener) {
+	      setTimeout(this.nextCallback, 0);
+	      return;
+	    }
+
+	    if (this.props.addEndListener) {
+	      this.props.addEndListener(node, this.nextCallback);
+	    }
+
+	    if (timeout != null) {
+	      setTimeout(this.nextCallback, timeout);
+	    }
+	  };
+
+	  _proto.render = function render() {
+	    var status = this.state.status;
+
+	    if (status === UNMOUNTED) {
+	      return null;
+	    }
+
+	    var _this$props = this.props,
+	        children = _this$props.children,
+	        childProps = _objectWithoutPropertiesLoose(_this$props, ["children"]); // filter props for Transtition
+
+
+	    delete childProps.in;
+	    delete childProps.mountOnEnter;
+	    delete childProps.unmountOnExit;
+	    delete childProps.appear;
+	    delete childProps.enter;
+	    delete childProps.exit;
+	    delete childProps.timeout;
+	    delete childProps.addEndListener;
+	    delete childProps.onEnter;
+	    delete childProps.onEntering;
+	    delete childProps.onEntered;
+	    delete childProps.onExit;
+	    delete childProps.onExiting;
+	    delete childProps.onExited;
+
+	    if (typeof children === 'function') {
+	      return children(status, childProps);
+	    }
+
+	    var child = _react.default.Children.only(children);
+
+	    return _react.default.cloneElement(child, childProps);
+	  };
+
+	  return Transition;
+	}(_react.default.Component);
+
+	Transition.contextTypes = {
+	  transitionGroup: PropTypes$1.object
+	};
+	Transition.childContextTypes = {
+	  transitionGroup: function transitionGroup() {}
+	};
+	Transition.propTypes = {
+	  /**
+	   * A `function` child can be used instead of a React element. This function is
+	   * called with the current transition status (`'entering'`, `'entered'`,
+	   * `'exiting'`, `'exited'`, `'unmounted'`), which can be used to apply context
+	   * specific props to a component.
+	   *
+	   * ```jsx
+	   * <Transition in={this.state.in} timeout={150}>
+	   *   {state => (
+	   *     <MyComponent className={`fade fade-${state}`} />
+	   *   )}
+	   * </Transition>
+	   * ```
+	   */
+	  children: PropTypes$1.oneOfType([PropTypes$1.func.isRequired, PropTypes$1.element.isRequired]).isRequired,
+
+	  /**
+	   * Show the component; triggers the enter or exit states
+	   */
+	  in: PropTypes$1.bool,
+
+	  /**
+	   * By default the child component is mounted immediately along with
+	   * the parent `Transition` component. If you want to "lazy mount" the component on the
+	   * first `in={true}` you can set `mountOnEnter`. After the first enter transition the component will stay
+	   * mounted, even on "exited", unless you also specify `unmountOnExit`.
+	   */
+	  mountOnEnter: PropTypes$1.bool,
+
+	  /**
+	   * By default the child component stays mounted after it reaches the `'exited'` state.
+	   * Set `unmountOnExit` if you'd prefer to unmount the component after it finishes exiting.
+	   */
+	  unmountOnExit: PropTypes$1.bool,
+
+	  /**
+	   * Normally a component is not transitioned if it is shown when the `<Transition>` component mounts.
+	   * If you want to transition on the first mount set `appear` to `true`, and the
+	   * component will transition in as soon as the `<Transition>` mounts.
+	   *
+	   * > Note: there are no specific "appear" states. `appear` only adds an additional `enter` transition.
+	   */
+	  appear: PropTypes$1.bool,
+
+	  /**
+	   * Enable or disable enter transitions.
+	   */
+	  enter: PropTypes$1.bool,
+
+	  /**
+	   * Enable or disable exit transitions.
+	   */
+	  exit: PropTypes$1.bool,
+
+	  /**
+	   * The duration of the transition, in milliseconds.
+	   * Required unless `addEndListener` is provided.
+	   *
+	   * You may specify a single timeout for all transitions:
+	   *
+	   * ```jsx
+	   * timeout={500}
+	   * ```
+	   *
+	   * or individually:
+	   *
+	   * ```jsx
+	   * timeout={{
+	   *  appear: 500,
+	   *  enter: 300,
+	   *  exit: 500,
+	   * }}
+	   * ```
+	   *
+	   * - `appear` defaults to the value of `enter`
+	   * - `enter` defaults to `0`
+	   * - `exit` defaults to `0`
+	   *
+	   * @type {number | { enter?: number, exit?: number, appear?: number }}
+	   */
+	  timeout: function timeout(props) {
+	    var pt = PropTypes.timeoutsShape;
+	    if (!props.addEndListener) pt = pt.isRequired;
+
+	    for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+	      args[_key - 1] = arguments[_key];
+	    }
+
+	    return pt.apply(void 0, [props].concat(args));
+	  },
+
+	  /**
+	   * Add a custom transition end trigger. Called with the transitioning
+	   * DOM node and a `done` callback. Allows for more fine grained transition end
+	   * logic. **Note:** Timeouts are still used as a fallback if provided.
+	   *
+	   * ```jsx
+	   * addEndListener={(node, done) => {
+	   *   // use the css transitionend event to mark the finish of a transition
+	   *   node.addEventListener('transitionend', done, false);
+	   * }}
+	   * ```
+	   */
+	  addEndListener: PropTypes$1.func,
+
+	  /**
+	   * Callback fired before the "entering" status is applied. An extra parameter
+	   * `isAppearing` is supplied to indicate if the enter stage is occurring on the initial mount
+	   *
+	   * @type Function(node: HtmlElement, isAppearing: bool) -> void
+	   */
+	  onEnter: PropTypes$1.func,
+
+	  /**
+	   * Callback fired after the "entering" status is applied. An extra parameter
+	   * `isAppearing` is supplied to indicate if the enter stage is occurring on the initial mount
+	   *
+	   * @type Function(node: HtmlElement, isAppearing: bool)
+	   */
+	  onEntering: PropTypes$1.func,
+
+	  /**
+	   * Callback fired after the "entered" status is applied. An extra parameter
+	   * `isAppearing` is supplied to indicate if the enter stage is occurring on the initial mount
+	   *
+	   * @type Function(node: HtmlElement, isAppearing: bool) -> void
+	   */
+	  onEntered: PropTypes$1.func,
+
+	  /**
+	   * Callback fired before the "exiting" status is applied.
+	   *
+	   * @type Function(node: HtmlElement) -> void
+	   */
+	  onExit: PropTypes$1.func,
+
+	  /**
+	   * Callback fired after the "exiting" status is applied.
+	   *
+	   * @type Function(node: HtmlElement) -> void
+	   */
+	  onExiting: PropTypes$1.func,
+
+	  /**
+	   * Callback fired after the "exited" status is applied.
+	   *
+	   * @type Function(node: HtmlElement) -> void
+	   */
+	  onExited: PropTypes$1.func // Name the function so it is clearer in the documentation
+
+	};
+
+	function noop() {}
+
+	Transition.defaultProps = {
+	  in: false,
+	  mountOnEnter: false,
+	  unmountOnExit: false,
+	  appear: false,
+	  enter: true,
+	  exit: true,
+	  onEnter: noop,
+	  onEntering: noop,
+	  onEntered: noop,
+	  onExit: noop,
+	  onExiting: noop,
+	  onExited: noop
+	};
+	Transition.UNMOUNTED = 0;
+	Transition.EXITED = 1;
+	Transition.ENTERING = 2;
+	Transition.ENTERED = 3;
+	Transition.EXITING = 4;
+
+	var _default = (0, reactLifecyclesCompat_es.polyfill)(Transition);
+
+	exports.default = _default;
+	});
+
+	var Transition = unwrapExports(Transition_1);
+	var Transition_2 = Transition_1.EXITING;
+	var Transition_3 = Transition_1.ENTERED;
+	var Transition_4 = Transition_1.ENTERING;
+	var Transition_5 = Transition_1.EXITED;
+	var Transition_6 = Transition_1.UNMOUNTED;
+
+	var POSITION = {
+	  TOP_LEFT: 'top-left',
+	  TOP_RIGHT: 'top-right',
+	  TOP_CENTER: 'top-center',
+	  BOTTOM_LEFT: 'bottom-left',
+	  BOTTOM_RIGHT: 'bottom-right',
+	  BOTTOM_CENTER: 'bottom-center'
+	};
+	var TYPE = {
+	  INFO: 'info',
+	  SUCCESS: 'success',
+	  WARNING: 'warning',
+	  ERROR: 'error',
+	  DEFAULT: 'default'
+	};
+	var ACTION = {
+	  SHOW: 0,
+	  CLEAR: 1,
+	  DID_MOUNT: 2,
+	  WILL_UNMOUNT: 3,
+	  ON_CHANGE: 4
+	};
+	var NOOP = function NOOP() {};
+
+	function isValidDelay(val) {
+	  return typeof val === 'number' && !isNaN(val) && val > 0;
+	}
+	function objectValues(obj) {
+	  return Object.keys(obj).map(function (key) {
+	    return obj[key];
+	  });
+	}
+	var canUseDom = !!(typeof window !== 'undefined' && window.document && window.document.createElement);
+
+	function withRequired(fn) {
+	  fn.isRequired = function (props, propName, componentName) {
+	    var prop = props[propName];
+
+	    if (typeof prop === 'undefined') {
+	      return new Error("The prop " + propName + " is marked as required in \n      " + componentName + ", but its value is undefined.");
+	    }
+
+	    fn(props, propName, componentName);
+	  };
+
+	  return fn;
+	}
+
+	var falseOrDelay = withRequired(function (props, propName, componentName) {
+	  var prop = props[propName];
+
+	  if (prop !== false && !isValidDelay(prop)) {
+	    return new Error(componentName + " expect " + propName + " \n      to be a valid Number > 0 or equal to false. " + prop + " given.");
+	  }
+
+	  return null;
+	});
+
+	function ProgressBar(_ref) {
+	  var _animationEvent;
+
+	  var delay = _ref.delay,
+	      isRunning = _ref.isRunning,
+	      closeToast = _ref.closeToast,
+	      type = _ref.type,
+	      hide = _ref.hide,
+	      className = _ref.className,
+	      userStyle = _ref.style,
+	      controlledProgress = _ref.controlledProgress,
+	      progress = _ref.progress,
+	      rtl = _ref.rtl;
+
+	  var style = _extends$1({}, userStyle, {
+	    animationDuration: delay + "ms",
+	    animationPlayState: isRunning ? 'running' : 'paused',
+	    opacity: hide ? 0 : 1,
+	    transform: controlledProgress ? "scaleX(" + progress + ")" : null
+	  });
+
+	  var classNames = classnames('Toastify__progress-bar', controlledProgress ? 'Toastify__progress-bar--controlled' : 'Toastify__progress-bar--animated', "Toastify__progress-bar--" + type, {
+	    'Toastify__progress-bar--rtl': rtl
+	  }, className);
+	  var animationEvent = (_animationEvent = {}, _animationEvent[controlledProgress && progress >= 1 ? 'onTransitionEnd' : 'onAnimationEnd'] = controlledProgress && progress < 1 ? null : closeToast, _animationEvent);
+	  return react.createElement("div", _extends$1({
+	    className: classNames,
+	    style: style
+	  }, animationEvent));
+	}
+
+	ProgressBar.propTypes = {
+	  /**
+	   * The animation delay which determine when to close the toast
+	   */
+	  delay: falseOrDelay.isRequired,
+
+	  /**
+	   * Whether or not the animation is running or paused
+	   */
+	  isRunning: propTypes.bool.isRequired,
+
+	  /**
+	   * Func to close the current toast
+	   */
+	  closeToast: propTypes.func.isRequired,
+
+	  /**
+	   * Support rtl content
+	   */
+	  rtl: propTypes.bool.isRequired,
+
+	  /**
+	   * Optional type : info, success ...
+	   */
+	  type: propTypes.string,
+
+	  /**
+	   * Hide or not the progress bar
+	   */
+	  hide: propTypes.bool,
+
+	  /**
+	   * Optionnal className
+	   */
+	  className: propTypes.oneOfType([propTypes.string, propTypes.object]),
+
+	  /**
+	   * Controlled progress value
+	   */
+	  progress: propTypes.number,
+
+	  /**
+	   * Tell wether or not controlled progress bar is used
+	   */
+	  controlledProgress: propTypes.bool
+	};
+	ProgressBar.defaultProps = {
+	  type: TYPE.DEFAULT,
+	  hide: false
+	};
+
+	function getX(e) {
+	  return e.targetTouches && e.targetTouches.length >= 1 ? e.targetTouches[0].clientX : e.clientX;
+	}
+
+	function getY(e) {
+	  return e.targetTouches && e.targetTouches.length >= 1 ? e.targetTouches[0].clientY : e.clientY;
+	}
+
+	var iLoveInternetExplorer = canUseDom && /(msie|trident)/i.test(navigator.userAgent);
+
+	var Toast =
+	/*#__PURE__*/
+	function (_Component) {
+	  _inheritsLoose(Toast, _Component);
+
+	  function Toast() {
+	    var _this;
+
+	    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+	      args[_key] = arguments[_key];
+	    }
+
+	    _this = _Component.call.apply(_Component, [this].concat(args)) || this;
+	    _this.state = {
+	      isRunning: true,
+	      preventExitTransition: false
+	    };
+	    _this.flag = {
+	      canCloseOnClick: true,
+	      canDrag: false
+	    };
+	    _this.drag = {
+	      start: 0,
+	      x: 0,
+	      y: 0,
+	      deltaX: 0,
+	      removalDistance: 0
+	    };
+	    _this.boundingRect = null;
+	    _this.ref = null;
+
+	    _this.pauseToast = function () {
+	      if (_this.props.autoClose) {
+	        _this.setState({
+	          isRunning: false
+	        });
+	      }
+	    };
+
+	    _this.playToast = function () {
+	      if (_this.props.autoClose) {
+	        _this.setState({
+	          isRunning: true
+	        });
+	      }
+	    };
+
+	    _this.onDragStart = function (e) {
+	      _this.flag.canCloseOnClick = true;
+	      _this.flag.canDrag = true;
+	      _this.boundingRect = _this.ref.getBoundingClientRect();
+	      _this.ref.style.transition = '';
+	      _this.drag.start = _this.drag.x = getX(e.nativeEvent);
+	      _this.drag.removalDistance = _this.ref.offsetWidth * (_this.props.draggablePercent / 100);
+	    };
+
+	    _this.onDragMove = function (e) {
+	      if (_this.flag.canDrag) {
+	        if (_this.state.isRunning) {
+	          _this.pauseToast();
+	        }
+
+	        _this.drag.x = getX(e);
+	        _this.drag.deltaX = _this.drag.x - _this.drag.start;
+	        _this.drag.y = getY(e); // prevent false positif during a toast click
+
+	        _this.drag.start !== _this.drag.x && (_this.flag.canCloseOnClick = false);
+	        _this.ref.style.transform = "translateX(" + _this.drag.deltaX + "px)";
+	        _this.ref.style.opacity = 1 - Math.abs(_this.drag.deltaX / _this.drag.removalDistance);
+	      }
+	    };
+
+	    _this.onDragEnd = function (e) {
+	      if (_this.flag.canDrag) {
+	        _this.flag.canDrag = false;
+
+	        if (Math.abs(_this.drag.deltaX) > _this.drag.removalDistance) {
+	          _this.setState({
+	            preventExitTransition: true
+	          }, _this.props.closeToast);
+
+	          return;
+	        }
+
+	        _this.ref.style.transition = 'transform 0.2s, opacity 0.2s';
+	        _this.ref.style.transform = 'translateX(0)';
+	        _this.ref.style.opacity = 1;
+	      }
+	    };
+
+	    _this.onDragTransitionEnd = function () {
+	      if (_this.boundingRect) {
+	        var _this$boundingRect = _this.boundingRect,
+	            top = _this$boundingRect.top,
+	            bottom = _this$boundingRect.bottom,
+	            left = _this$boundingRect.left,
+	            right = _this$boundingRect.right;
+
+	        if (_this.props.pauseOnHover && _this.drag.x >= left && _this.drag.x <= right && _this.drag.y >= top && _this.drag.y <= bottom) {
+	          _this.pauseToast();
+	        } else {
+	          _this.playToast();
+	        }
+	      }
+	    };
+
+	    _this.onExitTransitionEnd = function () {
+	      if (iLoveInternetExplorer) {
+	        _this.props.onExited();
+
+	        return;
+	      }
+
+	      var height = _this.ref.scrollHeight;
+	      var style = _this.ref.style;
+	      requestAnimationFrame(function () {
+	        style.minHeight = 'initial';
+	        style.height = height + 'px';
+	        style.transition = 'all 0.4s ';
+	        requestAnimationFrame(function () {
+	          style.height = 0;
+	          style.padding = 0;
+	          style.margin = 0;
+	        });
+	        setTimeout(function () {
+	          return _this.props.onExited();
+	        }, 400);
+	      });
+	    };
+
+	    return _this;
+	  }
+
+	  var _proto = Toast.prototype;
+
+	  _proto.componentDidMount = function componentDidMount() {
+	    this.props.onOpen(this.props.children.props);
+
+	    if (this.props.draggable) {
+	      this.bindDragEvents();
+	    } // Maybe I could bind the event in the ToastContainer and rely on delegation
+
+
+	    if (this.props.pauseOnFocusLoss) {
+	      this.bindFocusEvents();
+	    }
+	  };
+
+	  _proto.componentDidUpdate = function componentDidUpdate(prevProps) {
+	    if (prevProps.draggable !== this.props.draggable) {
+	      if (this.props.draggable) {
+	        this.bindDragEvents();
+	      } else {
+	        this.unbindDragEvents();
+	      }
+	    }
+
+	    if (prevProps.pauseOnFocusLoss !== this.props.pauseOnFocusLoss) {
+	      if (this.props.pauseOnFocusLoss) {
+	        this.bindFocusEvents();
+	      } else {
+	        this.unbindFocusEvents();
+	      }
+	    }
+	  };
+
+	  _proto.componentWillUnmount = function componentWillUnmount() {
+	    this.props.onClose(this.props.children.props);
+
+	    if (this.props.draggable) {
+	      this.unbindDragEvents();
+	    }
+
+	    if (this.props.pauseOnFocusLoss) {
+	      this.unbindFocusEvents();
+	    }
+	  };
+
+	  _proto.bindFocusEvents = function bindFocusEvents() {
+	    window.addEventListener('focus', this.playToast);
+	    window.addEventListener('blur', this.pauseToast);
+	  };
+
+	  _proto.unbindFocusEvents = function unbindFocusEvents() {
+	    window.removeEventListener('focus', this.playToast);
+	    window.removeEventListener('blur', this.pauseToast);
+	  };
+
+	  _proto.bindDragEvents = function bindDragEvents() {
+	    document.addEventListener('mousemove', this.onDragMove);
+	    document.addEventListener('mouseup', this.onDragEnd);
+	    document.addEventListener('touchmove', this.onDragMove);
+	    document.addEventListener('touchend', this.onDragEnd);
+	  };
+
+	  _proto.unbindDragEvents = function unbindDragEvents() {
+	    document.removeEventListener('mousemove', this.onDragMove);
+	    document.removeEventListener('mouseup', this.onDragEnd);
+	    document.removeEventListener('touchmove', this.onDragMove);
+	    document.removeEventListener('touchend', this.onDragEnd);
+	  };
+
+	  _proto.render = function render() {
+	    var _this2 = this;
+
+	    var _this$props = this.props,
+	        closeButton = _this$props.closeButton,
+	        children = _this$props.children,
+	        autoClose = _this$props.autoClose,
+	        pauseOnHover = _this$props.pauseOnHover,
+	        onClick = _this$props.onClick,
+	        closeOnClick = _this$props.closeOnClick,
+	        type = _this$props.type,
+	        hideProgressBar = _this$props.hideProgressBar,
+	        closeToast = _this$props.closeToast,
+	        Transition = _this$props.transition,
+	        position = _this$props.position,
+	        className = _this$props.className,
+	        bodyClassName = _this$props.bodyClassName,
+	        progressClassName = _this$props.progressClassName,
+	        progressStyle = _this$props.progressStyle,
+	        updateId = _this$props.updateId,
+	        role = _this$props.role,
+	        progress = _this$props.progress,
+	        rtl = _this$props.rtl;
+	    var toastProps = {
+	      className: classnames('Toastify__toast', "Toastify__toast--" + type, {
+	        'Toastify__toast--rtl': rtl
+	      }, className)
+	    };
+
+	    if (autoClose && pauseOnHover) {
+	      toastProps.onMouseEnter = this.pauseToast;
+	      toastProps.onMouseLeave = this.playToast;
+	    } // prevent toast from closing when user drags the toast
+
+
+	    if (closeOnClick) {
+	      toastProps.onClick = function (e) {
+	        onClick && onClick(e);
+	        _this2.flag.canCloseOnClick && closeToast();
+	      };
+	    }
+
+	    var controlledProgress = parseFloat(progress) === progress;
+	    return react.createElement(Transition, {
+	      in: this.props.in,
+	      appear: true,
+	      onExited: this.onExitTransitionEnd,
+	      position: position,
+	      preventExitTransition: this.state.preventExitTransition
+	    }, react.createElement("div", _extends$1({
+	      onClick: onClick
+	    }, toastProps, {
+	      ref: function ref(_ref) {
+	        return _this2.ref = _ref;
+	      },
+	      onMouseDown: this.onDragStart,
+	      onTouchStart: this.onDragStart,
+	      onMouseUp: this.onDragTransitionEnd,
+	      onTouchEnd: this.onDragTransitionEnd
+	    }), react.createElement("div", _extends$1({}, this.props.in && {
+	      role: role
+	    }, {
+	      className: classnames('Toastify__toast-body', bodyClassName)
+	    }), children), closeButton && closeButton, (autoClose || controlledProgress) && react.createElement(ProgressBar, _extends$1({}, updateId && !controlledProgress ? {
+	      key: "pb-" + updateId
+	    } : {}, {
+	      rtl: rtl,
+	      delay: autoClose,
+	      isRunning: this.state.isRunning,
+	      closeToast: closeToast,
+	      hide: hideProgressBar,
+	      type: type,
+	      style: progressStyle,
+	      className: progressClassName,
+	      controlledProgress: controlledProgress,
+	      progress: progress
+	    }))));
+	  };
+
+	  return Toast;
+	}(react_3);
+
+	Toast.propTypes = {
+	  closeButton: propTypes.oneOfType([propTypes.node, propTypes.bool]).isRequired,
+	  autoClose: falseOrDelay.isRequired,
+	  children: propTypes.node.isRequired,
+	  closeToast: propTypes.func.isRequired,
+	  position: propTypes.oneOf(objectValues(POSITION)).isRequired,
+	  pauseOnHover: propTypes.bool.isRequired,
+	  pauseOnFocusLoss: propTypes.bool.isRequired,
+	  closeOnClick: propTypes.bool.isRequired,
+	  transition: propTypes.func.isRequired,
+	  rtl: propTypes.bool.isRequired,
+	  hideProgressBar: propTypes.bool.isRequired,
+	  draggable: propTypes.bool.isRequired,
+	  draggablePercent: propTypes.number.isRequired,
+	  in: propTypes.bool,
+	  onExited: propTypes.func,
+	  onOpen: propTypes.func,
+	  onClose: propTypes.func,
+	  type: propTypes.oneOf(objectValues(TYPE)),
+	  className: propTypes.oneOfType([propTypes.string, propTypes.object]),
+	  bodyClassName: propTypes.oneOfType([propTypes.string, propTypes.object]),
+	  progressClassName: propTypes.oneOfType([propTypes.string, propTypes.object]),
+	  progressStyle: propTypes.object,
+	  progress: propTypes.number,
+	  updateId: propTypes.oneOfType([propTypes.string, propTypes.number]),
+	  ariaLabel: propTypes.string,
+	  containerId: propTypes.oneOfType([propTypes.string, propTypes.number]),
+	  role: propTypes.string
+	};
+	Toast.defaultProps = {
+	  type: TYPE.DEFAULT,
+	  in: true,
+	  onOpen: NOOP,
+	  onClose: NOOP,
+	  className: null,
+	  bodyClassName: null,
+	  progressClassName: null,
+	  updateId: null
+	};
+
+	function CloseButton(_ref) {
+	  var closeToast = _ref.closeToast,
+	      type = _ref.type,
+	      ariaLabel = _ref.ariaLabel;
+	  return react.createElement("button", {
+	    className: "Toastify__close-button Toastify__close-button--" + type,
+	    type: "button",
+	    onClick: function onClick(e) {
+	      e.stopPropagation();
+	      closeToast(e);
+	    },
+	    "aria-label": ariaLabel
+	  }, "\u2716");
+	}
+
+	CloseButton.propTypes = {
+	  closeToast: propTypes.func,
+	  arialLabel: propTypes.string
+	};
+	CloseButton.defaultProps = {
+	  ariaLabel: 'close'
+	};
+
+	function cssTransition (_ref) {
+	  var enter = _ref.enter,
+	      exit = _ref.exit,
+	      _ref$duration = _ref.duration,
+	      duration = _ref$duration === void 0 ? 750 : _ref$duration,
+	      _ref$appendPosition = _ref.appendPosition,
+	      appendPosition = _ref$appendPosition === void 0 ? false : _ref$appendPosition;
+	  return function Animation(_ref2) {
+	    var children = _ref2.children,
+	        position = _ref2.position,
+	        preventExitTransition = _ref2.preventExitTransition,
+	        props = _objectWithoutPropertiesLoose(_ref2, ["children", "position", "preventExitTransition"]);
+
+	    var enterClassName = appendPosition ? enter + "--" + position : enter;
+	    var exitClassName = appendPosition ? exit + "--" + position : exit;
+	    var enterDuration, exitDuration;
+
+	    if (Array.isArray(duration) && duration.length === 2) {
+	      enterDuration = duration[0];
+	      exitDuration = duration[1];
+	    } else {
+	      enterDuration = exitDuration = duration;
+	    }
+
+	    var onEnter = function onEnter(node) {
+	      node.classList.add(enterClassName);
+	      node.style.animationFillMode = 'forwards';
+	      node.style.animationDuration = enterDuration * 0.001 + "s";
+	    };
+
+	    var onEntered = function onEntered(node) {
+	      node.classList.remove(enterClassName);
+	      node.style.cssText = '';
+	    };
+
+	    var onExit = function onExit(node) {
+	      node.classList.add(exitClassName);
+	      node.style.animationFillMode = 'forwards';
+	      node.style.animationDuration = exitDuration * 0.001 + "s";
+	    };
+
+	    return react.createElement(Transition, _extends$1({}, props, {
+	      timeout: preventExitTransition ? 0 : {
+	        enter: enterDuration,
+	        exit: exitDuration
+	      },
+	      onEnter: onEnter,
+	      onEntered: onEntered,
+	      onExit: preventExitTransition ? NOOP : onExit
+	    }), children);
+	  };
+	}
+
+	var Bounce = cssTransition({
+	  enter: 'Toastify__bounce-enter',
+	  exit: 'Toastify__bounce-exit',
+	  appendPosition: true
+	});
+	var Slide = cssTransition({
+	  enter: 'Toastify__slide-enter',
+	  exit: 'Toastify__slide-exit',
+	  duration: [450, 750],
+	  appendPosition: true
+	});
+	var Zoom = cssTransition({
+	  enter: 'Toastify__zoom-enter',
+	  exit: 'Toastify__zoom-exit'
+	});
+	var Flip = cssTransition({
+	  enter: 'Toastify__flip-enter',
+	  exit: 'Toastify__flip-exit'
+	});
+
+	var eventManager = {
+	  list: new Map(),
+	  on: function on(event, callback) {
+	    this.list.has(event) || this.list.set(event, []);
+	    this.list.get(event).push(callback);
+	    return this;
+	  },
+	  off: function off(event) {
+	    this.list.delete(event);
+	    return this;
+	  },
+
+	  /**
+	   * Enqueue the event at the end of the call stack
+	   * Doing so let the user call toast as follow:
+	   * toast('1')
+	   * toast('2')
+	   * toast('3')
+	   * Without setTimemout the code above will not work
+	   */
+	  emit: function emit(event) {
+	    for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+	      args[_key - 1] = arguments[_key];
+	    }
+
+	    this.list.has(event) && this.list.get(event).forEach(function (callback) {
+	      return setTimeout(function () {
+	        callback.apply(void 0, args);
+	      }, 0);
+	    });
+	  }
+	};
+
+	var ToastContainer =
+	/*#__PURE__*/
+	function (_Component) {
+	  _inheritsLoose(ToastContainer, _Component);
+
+	  function ToastContainer() {
+	    var _this;
+
+	    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+	      args[_key] = arguments[_key];
+	    }
+
+	    _this = _Component.call.apply(_Component, [this].concat(args)) || this;
+	    _this.state = {
+	      toast: []
+	    };
+	    _this.toastKey = 1;
+	    _this.collection = {};
+
+	    _this.isToastActive = function (id) {
+	      return _this.state.toast.indexOf(id) !== -1;
+	    };
+
+	    return _this;
+	  }
+
+	  var _proto = ToastContainer.prototype;
+
+	  _proto.componentDidMount = function componentDidMount() {
+	    var _this2 = this;
+
+	    eventManager.on(ACTION.SHOW, function (content, options) {
+	      return _this2.buildToast(content, options);
+	    }).on(ACTION.CLEAR, function (id) {
+	      return id == null ? _this2.clear() : _this2.removeToast(id);
+	    }).emit(ACTION.DID_MOUNT, this);
+	  };
+
+	  _proto.componentWillUnmount = function componentWillUnmount() {
+	    eventManager.off(ACTION.SHOW).off(ACTION.CLEAR).emit(ACTION.WILL_UNMOUNT, this);
+	  };
+
+	  _proto.removeToast = function removeToast(id) {
+	    this.setState({
+	      toast: this.state.toast.filter(function (v) {
+	        return v !== id;
+	      })
+	    }, this.dispatchChange);
+	  };
+
+	  _proto.dispatchChange = function dispatchChange() {
+	    eventManager.emit(ACTION.ON_CHANGE, this.state.toast.length);
+	  };
+
+	  _proto.makeCloseButton = function makeCloseButton(toastClose, toastId, type) {
+	    var _this3 = this;
+
+	    var closeButton = this.props.closeButton;
+
+	    if (react_4(toastClose) || toastClose === false) {
+	      closeButton = toastClose;
+	    } else if (toastClose === true) {
+	      closeButton = react.createElement(CloseButton, null);
+	    }
+
+	    return closeButton === false ? false : react_5(closeButton, {
+	      closeToast: function closeToast() {
+	        return _this3.removeToast(toastId);
+	      },
+	      type: type
+	    });
+	  };
+
+	  _proto.getAutoCloseDelay = function getAutoCloseDelay(toastAutoClose) {
+	    return toastAutoClose === false || isValidDelay(toastAutoClose) ? toastAutoClose : this.props.autoClose;
+	  };
+
+	  _proto.canBeRendered = function canBeRendered(content) {
+	    return react_4(content) || typeof content === 'string' || typeof content === 'number' || typeof content === 'function';
+	  };
+
+	  _proto.parseClassName = function parseClassName(prop) {
+	    if (typeof prop === 'string') {
+	      return prop;
+	    } else if (prop !== null && typeof prop === 'object' && 'toString' in prop) {
+	      return prop.toString();
+	    }
+
+	    return null;
+	  };
+
+	  _proto.belongToContainer = function belongToContainer(_ref) {
+	    var containerId = _ref.containerId;
+	    return containerId === this.props.containerId;
+	  };
+
+	  _proto.buildToast = function buildToast(content, _ref2) {
+	    var _this4 = this;
+
+	    var delay = _ref2.delay,
+	        options = _objectWithoutPropertiesLoose(_ref2, ["delay"]);
+
+	    if (!this.canBeRendered(content)) {
+	      throw new Error("The element you provided cannot be rendered. You provided an element of type " + typeof content);
+	    }
+
+	    var toastId = options.toastId,
+	        updateId = options.updateId; // Check for multi-container and also for duplicate toastId
+	    // Maybe it would be better to extract it
+
+	    if (this.props.enableMultiContainer && !this.belongToContainer(options) || this.isToastActive(toastId) && updateId == null) {
+	      return;
+	    }
+
+	    var closeToast = function closeToast() {
+	      return _this4.removeToast(toastId);
+	    };
+
+	    var toastOptions = {
+	      id: toastId,
+	      // ⚠️ if no options.key, this.toastKey - 1 is assigned
+	      key: options.key || this.toastKey++,
+	      type: options.type,
+	      closeToast: closeToast,
+	      updateId: options.updateId,
+	      rtl: this.props.rtl,
+	      position: options.position || this.props.position,
+	      transition: options.transition || this.props.transition,
+	      className: this.parseClassName(options.className || this.props.toastClassName),
+	      bodyClassName: this.parseClassName(options.bodyClassName || this.props.bodyClassName),
+	      onClick: options.onClick || this.props.onClick,
+	      closeButton: this.makeCloseButton(options.closeButton, toastId, options.type),
+	      pauseOnHover: typeof options.pauseOnHover === 'boolean' ? options.pauseOnHover : this.props.pauseOnHover,
+	      pauseOnFocusLoss: typeof options.pauseOnFocusLoss === 'boolean' ? options.pauseOnFocusLoss : this.props.pauseOnFocusLoss,
+	      draggable: typeof options.draggable === 'boolean' ? options.draggable : this.props.draggable,
+	      draggablePercent: typeof options.draggablePercent === 'number' && !isNaN(options.draggablePercent) ? options.draggablePercent : this.props.draggablePercent,
+	      closeOnClick: typeof options.closeOnClick === 'boolean' ? options.closeOnClick : this.props.closeOnClick,
+	      progressClassName: this.parseClassName(options.progressClassName || this.props.progressClassName),
+	      progressStyle: this.props.progressStyle,
+	      autoClose: this.getAutoCloseDelay(options.autoClose),
+	      hideProgressBar: typeof options.hideProgressBar === 'boolean' ? options.hideProgressBar : this.props.hideProgressBar,
+	      progress: parseFloat(options.progress),
+	      role: typeof options.role === 'string' ? options.role : this.props.role
+	    };
+	    typeof options.onOpen === 'function' && (toastOptions.onOpen = options.onOpen);
+	    typeof options.onClose === 'function' && (toastOptions.onClose = options.onClose); // add closeToast function to react component only
+
+	    if (react_4(content) && typeof content.type !== 'string' && typeof content.type !== 'number') {
+	      content = react_5(content, {
+	        closeToast: closeToast
+	      });
+	    } else if (typeof content === 'function') {
+	      content = content({
+	        closeToast: closeToast
+	      });
+	    }
+
+	    if (isValidDelay(delay)) {
+	      setTimeout(function () {
+	        _this4.appendToast(toastOptions, content, options.staleToastId);
+	      }, delay);
+	    } else {
+	      this.appendToast(toastOptions, content, options.staleToastId);
+	    }
+	  };
+
+	  _proto.appendToast = function appendToast(options, content, staleToastId) {
+	    var _extends2;
+
+	    var id = options.id,
+	        updateId = options.updateId;
+	    this.collection = _extends$1({}, this.collection, (_extends2 = {}, _extends2[id] = {
+	      options: options,
+	      content: content,
+	      position: options.position
+	    }, _extends2));
+	    this.setState({
+	      toast: (updateId ? [].concat(this.state.toast) : [].concat(this.state.toast, [id])).filter(function (id) {
+	        return id !== staleToastId;
+	      })
+	    }, this.dispatchChange);
+	  };
+
+	  _proto.clear = function clear() {
+	    this.setState({
+	      toast: []
+	    });
+	  };
+
+	  _proto.renderToast = function renderToast() {
+	    var _this5 = this;
+
+	    var toastToRender = {};
+	    var _this$props = this.props,
+	        className = _this$props.className,
+	        style = _this$props.style,
+	        newestOnTop = _this$props.newestOnTop;
+	    var collection = newestOnTop ? Object.keys(this.collection).reverse() : Object.keys(this.collection); // group toast by position
+
+	    collection.forEach(function (toastId) {
+	      var _this5$collection$toa = _this5.collection[toastId],
+	          position = _this5$collection$toa.position,
+	          options = _this5$collection$toa.options,
+	          content = _this5$collection$toa.content;
+	      toastToRender[position] || (toastToRender[position] = []);
+
+	      if (_this5.state.toast.indexOf(options.id) !== -1) {
+	        toastToRender[position].push(react.createElement(Toast, _extends$1({}, options, {
+	          isDocumentHidden: _this5.state.isDocumentHidden,
+	          key: "toast-" + options.key
+	        }), content));
+	      } else {
+	        toastToRender[position].push(null);
+	        delete _this5.collection[toastId];
+	      }
+	    });
+	    return Object.keys(toastToRender).map(function (position) {
+	      var disablePointer = toastToRender[position].length === 1 && toastToRender[position][0] === null;
+	      var props = {
+	        className: classnames('Toastify__toast-container', "Toastify__toast-container--" + position, {
+	          'Toastify__toast-container--rtl': _this5.props.rtl
+	        }, _this5.parseClassName(className)),
+	        style: disablePointer ? _extends$1({}, style, {
+	          pointerEvents: 'none'
+	        }) : _extends$1({}, style)
+	      };
+	      return react.createElement(TransitionGroup, _extends$1({}, props, {
+	        key: "container-" + position
+	      }), toastToRender[position]);
+	    });
+	  };
+
+	  _proto.render = function render() {
+	    return react.createElement("div", {
+	      className: "Toastify"
+	    }, this.renderToast());
+	  };
+
+	  return ToastContainer;
+	}(react_3);
+
+	ToastContainer.propTypes = {
+	  /**
+	   * Set toast position
+	   */
+	  position: propTypes.oneOf(objectValues(POSITION)),
+
+	  /**
+	   * Disable or set autoClose delay
+	   */
+	  autoClose: falseOrDelay,
+
+	  /**
+	   * Disable or set a custom react element for the close button
+	   */
+	  closeButton: propTypes.oneOfType([propTypes.node, propTypes.bool]),
+
+	  /**
+	   * Hide or not progress bar when autoClose is enabled
+	   */
+	  hideProgressBar: propTypes.bool,
+
+	  /**
+	   * Pause toast duration on hover
+	   */
+	  pauseOnHover: propTypes.bool,
+
+	  /**
+	   * Dismiss toast on click
+	   */
+	  closeOnClick: propTypes.bool,
+
+	  /**
+	   * Newest on top
+	   */
+	  newestOnTop: propTypes.bool,
+
+	  /**
+	   * An optional className
+	   */
+	  className: propTypes.oneOfType([propTypes.string, propTypes.object]),
+
+	  /**
+	   * An optional style
+	   */
+	  style: propTypes.object,
+
+	  /**
+	   * An optional className for the toast
+	   */
+	  toastClassName: propTypes.oneOfType([propTypes.string, propTypes.object]),
+
+	  /**
+	   * An optional className for the toast body
+	   */
+	  bodyClassName: propTypes.oneOfType([propTypes.string, propTypes.object]),
+
+	  /**
+	   * An optional className for the toast progress bar
+	   */
+	  progressClassName: propTypes.oneOfType([propTypes.string, propTypes.object]),
+
+	  /**
+	   * An optional style for the toast progress bar
+	   */
+	  progressStyle: propTypes.object,
+
+	  /**
+	   * Define enter and exit transition using react-transition-group
+	   */
+	  transition: propTypes.func,
+
+	  /**
+	   * Support rtl display
+	   */
+	  rtl: propTypes.bool,
+
+	  /**
+	   * Allow toast to be draggable
+	   */
+	  draggable: propTypes.bool,
+
+	  /**
+	   * The percentage of the toast's width it takes for a drag to dismiss a toast
+	   */
+	  draggablePercent: propTypes.number,
+
+	  /**
+	   * Pause the toast on focus loss
+	   */
+	  pauseOnFocusLoss: propTypes.bool,
+
+	  /**
+	   * Show the toast only if it includes containerId and it's the same as containerId
+	   */
+	  enableMultiContainer: propTypes.bool,
+
+	  /**
+	   * Set id to handle multiple container
+	   */
+	  containerId: propTypes.oneOfType([propTypes.string, propTypes.number]),
+
+	  /**
+	   * Set role attribute for the toast body
+	   */
+	  role: propTypes.string,
+
+	  /**
+	   * Fired when clicking inside toaster
+	   */
+	  onClick: propTypes.func
+	};
+	ToastContainer.defaultProps = {
+	  position: POSITION.TOP_RIGHT,
+	  transition: Bounce,
+	  rtl: false,
+	  autoClose: 5000,
+	  hideProgressBar: false,
+	  closeButton: react.createElement(CloseButton, null),
+	  pauseOnHover: true,
+	  pauseOnFocusLoss: true,
+	  closeOnClick: true,
+	  newestOnTop: false,
+	  draggable: true,
+	  draggablePercent: 80,
+	  className: null,
+	  style: null,
+	  toastClassName: null,
+	  bodyClassName: null,
+	  progressClassName: null,
+	  progressStyle: null,
+	  role: 'alert'
+	};
+
+	var containers = new Map();
+	var latestInstance = null;
+	var containerDomNode = null;
+	var containerConfig = {};
+	var queue = [];
+	var lazy = false;
+	/**
+	 * Check whether any container is currently mounted in the DOM
+	 */
+
+	function isAnyContainerMounted() {
+	  return containers.size > 0;
+	}
+	/**
+	 * Get the container by id. Returns the last container declared when no id is given.
+	 */
+
+
+	function getContainer(containerId) {
+	  if (!isAnyContainerMounted()) return null;
+	  if (!containerId) return containers.get(latestInstance);
+	  return containers.get(containerId);
+	}
+	/**
+	 * Get the toast by id, given it's in the DOM, otherwise returns null
+	 */
+
+
+	function getToast(toastId, _ref) {
+	  var containerId = _ref.containerId;
+	  var container = getContainer(containerId);
+	  if (!container) return null;
+	  var toast = container.collection[toastId];
+	  if (typeof toast === 'undefined') return null;
+	  return toast;
+	}
+	/**
+	 * Merge provided options with the defaults settings and generate the toastId
+	 */
+
+
+	function mergeOptions(options, type) {
+	  return _extends$1({}, options, {
+	    type: type,
+	    toastId: getToastId(options)
+	  });
+	}
+	/**
+	 * Generate a random toastId
+	 */
+
+
+	function generateToastId() {
+	  return (Math.random().toString(36) + Date.now().toString(36)).substr(2, 10);
+	}
+	/**
+	 * Generate a toastId or use the one provided
+	 */
+
+
+	function getToastId(options) {
+	  if (options && (typeof options.toastId === 'string' || typeof options.toastId === 'number' && !isNaN(options.toastId))) {
+	    return options.toastId;
+	  }
+
+	  return generateToastId();
+	}
+	/**
+	 * If the container is not mounted, the toast is enqueued and
+	 * the container lazy mounted
+	 */
+
+
+	function dispatchToast(content, options) {
+	  if (isAnyContainerMounted()) {
+	    eventManager.emit(ACTION.SHOW, content, options);
+	  } else {
+	    queue.push({
+	      action: ACTION.SHOW,
+	      content: content,
+	      options: options
+	    });
+
+	    if (lazy && canUseDom) {
+	      lazy = false;
+	      containerDomNode = document.createElement('div');
+	      document.body.appendChild(containerDomNode);
+	      reactDom_1(react.createElement(ToastContainer, containerConfig), containerDomNode);
+	    }
+	  }
+
+	  return options.toastId;
+	}
+
+	var toast = function toast(content, options) {
+	  return dispatchToast(content, mergeOptions(options, options && options.type || TYPE.DEFAULT));
+	};
+	/**
+	 * For each available type create a shortcut
+	 */
+
+
+	var _loop = function _loop(t) {
+	  if (TYPE[t] !== TYPE.DEFAULT) {
+	    toast[TYPE[t].toLowerCase()] = function (content, options) {
+	      return dispatchToast(content, mergeOptions(options, options && options.type || TYPE[t]));
+	    };
+	  }
+	};
+
+	for (var t in TYPE) {
+	  _loop(t);
+	}
+	/**
+	 * Maybe I should remove warning in favor of warn, I don't know
+	 */
+
+
+	toast.warn = toast.warning;
+	/**
+	 * Remove toast programmaticaly
+	 */
+
+	toast.dismiss = function (id) {
+	  if (id === void 0) {
+	    id = null;
+	  }
+
+	  return isAnyContainerMounted() && eventManager.emit(ACTION.CLEAR, id);
+	};
+	/**
+	 * Do nothing until the container is mounted. Reassigned later
+	 */
+
+
+	toast.isActive = NOOP;
+
+	toast.update = function (toastId, options) {
+	  if (options === void 0) {
+	    options = {};
+	  }
+
+	  // if you call toast and toast.update directly nothing will be displayed
+	  // this is why I defered the update
+	  setTimeout(function () {
+	    var toast = getToast(toastId, options);
+
+	    if (toast) {
+	      var oldOptions = toast.options,
+	          oldContent = toast.content;
+
+	      var nextOptions = _extends$1({}, oldOptions, options, {
+	        toastId: options.toastId || toastId
+	      });
+
+	      if (!options.toastId || options.toastId === toastId) {
+	        nextOptions.updateId = generateToastId();
+	      } else {
+	        nextOptions.staleToastId = toastId;
+	      }
+
+	      var content = typeof nextOptions.render !== 'undefined' ? nextOptions.render : oldContent;
+	      delete nextOptions.render;
+	      dispatchToast(content, nextOptions);
+	    }
+	  }, 0);
+	};
+	/**
+	 * Used for controlled progress bar.
+	 */
+
+
+	toast.done = function (id) {
+	  toast.update(id, {
+	    progress: 1
+	  });
+	};
+	/**
+	 * Track changes. The callback get the number of toast displayed
+	 */
+
+
+	toast.onChange = function (callback) {
+	  if (typeof callback === 'function') {
+	    eventManager.on(ACTION.ON_CHANGE, callback);
+	  }
+	};
+	/**
+	 * Configure the ToastContainer when lazy mounted
+	 */
+
+
+	toast.configure = function (config) {
+	  lazy = true;
+	  containerConfig = config;
+	};
+
+	toast.POSITION = POSITION;
+	toast.TYPE = TYPE;
+	/**
+	 * Wait until the ToastContainer is mounted to dispatch the toast
+	 * and attach isActive method
+	 */
+
+	eventManager.on(ACTION.DID_MOUNT, function (containerInstance) {
+	  latestInstance = containerInstance.props.containerId || containerInstance;
+	  containers.set(latestInstance, containerInstance);
+
+	  toast.isActive = function (id) {
+	    return containerInstance.isToastActive(id);
+	  };
+
+	  queue.forEach(function (item) {
+	    eventManager.emit(item.action, item.content, item.options);
+	  });
+	  queue = [];
+	}).on(ACTION.WILL_UNMOUNT, function (containerInstance) {
+	  if (containerInstance) containers.delete(containerInstance.props.containerId || containerInstance);else containers.clear();
+	  toast.isActive = NOOP;
+
+	  if (canUseDom && containerDomNode) {
+	    document.body.removeChild(containerDomNode);
+	  }
+	});
 
 	var bind = function bind(fn, thisArg) {
 	  return function wrap() {
@@ -24984,8 +28330,10 @@
 
 	var axios$1 = axios_1;
 
+	var authCode = "";
 	var registerUser = function registerUser(code) {
-	  return new Promise(function (resolve, reject) {
+	  authCode = code;
+	  return new Promise(function (resolve) {
 	    axios$1.post("/register", {
 	      code: code
 	    }).then(function (res) {
@@ -24993,11 +28341,11 @@
 	    });
 	  });
 	};
-	var getSongs = function getSongs(code) {
+	var getSongs = function getSongs() {
 	  return new Promise(function (resolve, reject) {
 	    axios$1.get("/songs", {
 	      headers: {
-	        "Authorization": "Bearer ".concat(code)
+	        "Authorization": "Bearer ".concat(authCode)
 	      }
 	    }).then(function (res) {
 	      return resolve(res);
@@ -25006,20 +28354,50 @@
 	    });
 	  });
 	};
+	/**
+	 * Update a song range.
+	 * @param {string} songId Song ID of the song to update the range of
+	 * @param {number} startTime Start time of the new range in milliseconds
+	 * @param {number} endTime End time of the new range in milliseconds
+	 */
 
-	var css$1 = ".song-card-holder {\n  display: flex;\n  flex-wrap: wrap;\n  justify-content: space-around; }\n  .song-card-holder .song-card {\n    border: 1px solid black;\n    margin-bottom: 0.5rem;\n    display: flex;\n    flex-direction: column;\n    flex-basis: 15%;\n    overflow: hidden; }\n    .song-card-holder .song-card p {\n      margin: .4rem 0;\n      white-space: nowrap;\n      overflow: hidden;\n      text-overflow: ellipsis; }\n      .song-card-holder .song-card p:hover {\n        white-space: normal; }\n";
+	var updateSongRange = function updateSongRange(songId, startTime, endTime) {
+	  return new Promise(function (resolve) {
+	    axios$1.post("/updateSongRange", {
+	      songId: songId,
+	      startTime_ms: startTime,
+	      endTime_ms: endTime
+	    }, {
+	      headers: {
+	        "Authorization": "Bearer ".concat(authCode)
+	      }
+	    }).then(function () {
+	      return resolve();
+	    });
+	  });
+	};
+
+	var getArtistsString = function getArtistsString(artists) {
+	  return artists.reduce(function (accumulator, current, index) {
+	    return "".concat(accumulator).concat(index ? ", " : "").concat(current);
+	  }, "");
+	};
+
+	var css$1 = ".song-card-holder {\n  display: flex;\n  flex-wrap: wrap;\n  justify-content: space-around; }\n  .song-card-holder .song-card {\n    border: 1px solid black;\n    margin: 0.5rem 1rem;\n    padding: 0.2rem 0.4rem;\n    overflow: hidden;\n    cursor: pointer;\n    display: flex;\n    flex-direction: column;\n    flex-basis: 15%; }\n    .song-card-holder .song-card p {\n      margin: .4rem 0;\n      white-space: nowrap;\n      overflow: hidden;\n      text-overflow: ellipsis; }\n";
 	styleInject(css$1);
 
 	var SongCard = function SongCard(_ref) {
-	  var song = _ref.song;
+	  var song = _ref.song,
+	      setCurrentSong = _ref.setCurrentSong;
 	  return react.createElement("div", {
-	    className: "song-card"
-	  }, react.createElement("p", null, song.name), react.createElement("p", null, song.artists.reduce(function (accumulator, current, index) {
-	    return "".concat(accumulator).concat(index ? ", " : "").concat(current);
-	  }, "")), react.createElement("p", null, song.album.name));
+	    className: "song-card",
+	    onClick: function onClick() {
+	      return setCurrentSong(song);
+	    }
+	  }, react.createElement("p", null, song.name), react.createElement("p", null, getArtistsString(song.artists)), react.createElement("p", null, song.album.name));
 	};
 
-	var css$2 = ".App {\n  text-align: center;\n}\n";
+	var css$2 = ".App {\n  text-align: center; }\n";
 	styleInject(css$2);
 
 	var AuthorizeComponent = function AuthorizeComponent() {
@@ -25037,23 +28415,72 @@
 	  }, error);
 	};
 
-	var SpotifyDisplay = function SpotifyDisplay(_ref2) {
-	  var authCode = _ref2.authCode;
+	var SongRangeForm = function SongRangeForm(_ref2) {
+	  var song = _ref2.song;
 
-	  var _useState = react_1("No message yet!"),
+	  var _useState = react_1(0),
 	      _useState2 = _slicedToArray(_useState, 2),
-	      message = _useState2[0],
-	      setMessage = _useState2[1];
+	      startTime = _useState2[0],
+	      setStartTime = _useState2[1];
 
-	  var _useState3 = react_1(null),
+	  var _useState3 = react_1(song.duration_ms),
 	      _useState4 = _slicedToArray(_useState3, 2),
-	      songs = _useState4[0],
-	      setSongs = _useState4[1];
+	      endTime = _useState4[0],
+	      setEndTime = _useState4[1];
+
+	  var setSongRange = function setSongRange(event) {
+	    event.preventDefault();
+	    updateSongRange(song.id, startTime, endTime).then(function () {
+	      return toast.success("Song range successfully updated");
+	    });
+	  };
+
+	  react_2(function () {
+	    setStartTime(0);
+	    setEndTime(song.duration_ms);
+	  }, [song]);
+	  return react.createElement("div", null, react.createElement("h3", null, song.name), react.createElement("h4", null, getArtistsString(song.artists)), react.createElement("form", {
+	    onSubmit: setSongRange
+	  }, react.createElement("label", null, "Start time:", react.createElement("input", {
+	    type: "number",
+	    value: startTime,
+	    onChange: function onChange(e) {
+	      return setStartTime(e.target.value);
+	    }
+	  })), react.createElement("label", null, "End time:", react.createElement("input", {
+	    type: "number",
+	    value: endTime,
+	    onChange: function onChange(e) {
+	      return setEndTime(e.target.value);
+	    }
+	  })), react.createElement("input", {
+	    type: "submit",
+	    value: "Set song range"
+	  })));
+	};
+
+	var SpotifyDisplay = function SpotifyDisplay(_ref3) {
+	  var authCode = _ref3.authCode;
+
+	  var _useState5 = react_1("No message yet!"),
+	      _useState6 = _slicedToArray(_useState5, 2),
+	      message = _useState6[0],
+	      setMessage = _useState6[1];
+
+	  var _useState7 = react_1(null),
+	      _useState8 = _slicedToArray(_useState7, 2),
+	      songs = _useState8[0],
+	      setSongs = _useState8[1];
+
+	  var _useState9 = react_1(null),
+	      _useState10 = _slicedToArray(_useState9, 2),
+	      currentSong = _useState10[0],
+	      setCurrentSong = _useState10[1];
 
 	  react_2(function () {
 	    registerUser(authCode).then(function (res) {
 	      setMessage("Data: ".concat(JSON.stringify(res)));
-	      getSongs(authCode).then(function (res) {
+	      getSongs().then(function (res) {
 	        return setSongs(res.data);
 	      })["catch"](function (err) {
 	        return setMessage("Error: ".concat(JSON.stringify(err)));
@@ -25062,13 +28489,20 @@
 	      return setMessage("Error: ".concat(JSON.stringify(err)));
 	    });
 	  }, []);
-	  return react.createElement("div", null, react.createElement("p", null, "Authorization code: ", authCode), songs ? react.createElement("div", {
+	  return react.createElement("div", null, react.createElement(ToastContainer, null), react.createElement("div", {
+	    className: "song-cards"
+	  }, songs ? react.createElement("div", {
 	    className: "song-card-holder"
 	  }, songs.map(function (song) {
-	    return react.createElement(SongCard, {
-	      song: song
-	    });
-	  })) : react.createElement("p", null, message));
+	    return react.createElement(SongCard, _extends({
+	      key: song.id
+	    }, {
+	      song: song,
+	      setCurrentSong: setCurrentSong
+	    }));
+	  })) : react.createElement("p", null, message)), currentSong && react.createElement(SongRangeForm, {
+	    song: currentSong
+	  }));
 	};
 
 	var App = function App() {
@@ -25095,3 +28529,4 @@
 	reactDom.render(react.createElement(App, null), document.getElementById('root'));
 
 }));
+//# sourceMappingURL=index.js.map

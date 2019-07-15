@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { ToastContainer, toast } from "react-toastify";
 
-import { registerUser, getSongs } from "./networking";
+import { registerUser, getSongs, updateSongRange } from "./networking";
 import { SongCard } from "./SongCard";
 
-import './App.css';
+import './App.scss';
+import { getArtistsString } from "./utils";
 
 const AuthorizeComponent = () => {
   return (
@@ -17,15 +19,51 @@ const ErrorDisplay = ({ error }) => {
   )
 }
 
+const SongRangeForm = ({ song }) => {
+  const [startTime, setStartTime] = useState(0);
+  const [endTime, setEndTime] = useState(song.duration_ms);
+
+  const setSongRange = (event) => {
+    event.preventDefault();
+
+    updateSongRange(song.id, startTime, endTime)
+      .then(() => toast.success("Song range successfully updated"));
+  }
+
+  useEffect(() => {
+    setStartTime(0);
+    setEndTime(song.duration_ms);
+  }, [song]);
+
+  return (
+    <div>
+      <h3>{song.name}</h3>
+      <h4>{getArtistsString(song.artists)}</h4>
+      <form onSubmit={setSongRange}>
+        <label>
+          Start time:
+          <input type="number" value={startTime} onChange={(e) => setStartTime(e.target.value)} />  
+        </label>
+        <label>
+          End time:
+          <input type="number" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
+        </label>
+        <input type="submit" value="Set song range" />
+      </form>
+    </div>
+  );
+}
+
 const SpotifyDisplay = ({ authCode }) => {
   const [message, setMessage] = useState("No message yet!");
   const [songs, setSongs] = useState(null);
+  const [currentSong, setCurrentSong] = useState(null);
 
   useEffect(() => {
     registerUser(authCode)
     .then((res) => {
       setMessage(`Data: ${JSON.stringify(res)}`);
-      getSongs(authCode)
+      getSongs()
       .then((res) => setSongs(res.data))
       .catch((err) => setMessage(`Error: ${JSON.stringify(err)}`));
     })
@@ -34,10 +72,13 @@ const SpotifyDisplay = ({ authCode }) => {
 
   return (
     <div>
-      <p>Authorization code: {authCode}</p>
-      {songs
-      ? <div className="song-card-holder">{songs.map((song) => <SongCard song={song} />)}</div>
-      : <p>{message}</p>}
+      <ToastContainer />
+      <div className="song-cards">
+        {songs
+        ? <div className="song-card-holder">{songs.map((song) => <SongCard key={song.id} {...{ song, setCurrentSong }} />)}</div>
+        : <p>{message}</p>}
+      </div>
+      {currentSong && <SongRangeForm song={currentSong} />}
     </div>
   )
 }

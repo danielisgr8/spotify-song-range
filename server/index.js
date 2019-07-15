@@ -11,7 +11,10 @@ const redirectUri = "http://localhost";
 const secretFile = fs.readFileSync("./CLIENT_SECRET");
 const clientSecret = secretFile.toString("utf8", 0, secretFile.length);
 
+/** A map of user token to array of the form [accessToken, refreshToken] */
 const users = {};
+/** A map of user token to array of objects of the form {songId, startTime, endTime} */
+const songRanges = {};
 
 const buildUrl = (base, queryParams) => {
     const entries = Object.entries(queryParams);
@@ -72,22 +75,23 @@ app.post("/register", (req, res) => {
     req.on("end", () => {
         const body = JSON.parse(data);
         getAccessToken(body.code)
-        .then((tokens) => {
-            users[body.code] = tokens;
-            res.statusCode = 200;
-            res.send();
-        })
-        .catch((err) => {
-            console.error(err && err.response);
-            res.statusCode = 400;
-            res.send();
-        });
+            .then((tokens) => {
+                users[body.code] = tokens;
+                songRanges[body.code] = {};
+                res.statusCode = 200;
+                res.send();
+            })
+            .catch((err) => {
+                console.error(err && err.response);
+                res.statusCode = 400;
+                res.send();
+            });
     });
 });
 
 app.get("/songs", (req, res) => {
     const token = /Bearer (.*)$/.exec(req.headers.authorization)[1];
-    if(!users[token]) {
+    if(!token || !users[token]) {
         res.statusCode = 400;
         res.send();
         return;
@@ -100,16 +104,17 @@ app.get("/songs", (req, res) => {
     .then((songsRes) => {
         res.send(songsRes.data.items.map((item) => {
             try {
-            return {
-                album: {
-                    artists: item.track.album.artists.map((artist) => artist.name),
-                    name: item.track.album.name
-                },
-                artists: item.track.artists.map((artist) => artist.name),
-                duration_ms: item.track.duration_ms,
-                name: item.track.name
-            }
-        } catch(err) { console.log(err); res.send("bad") }
+                return {
+                    album: {
+                        artists: item.track.album.artists.map((artist) => artist.name),
+                        name: item.track.album.name
+                    },
+                    artists: item.track.artists.map((artist) => artist.name),
+                    duration_ms: item.track.duration_ms,
+                    name: item.track.name,
+                    id: item.track.id
+                }
+            } catch(err) { console.log(err); res.send("bad") }
         }));
     })
     .catch((err) => {
@@ -119,4 +124,39 @@ app.get("/songs", (req, res) => {
     });
 });
 
+app.post("/updateSongRange", (req, res) => {
+    const token = /Bearer (.*)$/.exec(req.headers.authorization)[1];
+    if(!users[token]) {
+        res.statusCode = 400;
+        res.send();
+        return;
+    }
+
+    let data = "";
+    req.on("data", (chunk) => {
+        data += chunk;
+    });
+    req.on("end", () => {
+        data = JSON.parse(data);
+        songRanges[token][data.songId] = [data.startTime_ms, data.endTime_ms];
+
+        console.log(songRanges);
+
+        res.statusCode = 200;
+        res.send();
+    });
+});
+
 app.listen(port, () => console.log(`Server listening on port ${port}`));
+
+setInterval(() => {
+    for(token in users) {
+        const userSongRanges = songRanges[token];
+        if(userSongRanges) continue;
+        // get current song id
+        // see if current song id matches any in songRanges[token]
+        // if so,
+            // if current time is less than start time, seek to star time
+            // if current time is greater than end time, skip to next song
+    }
+}, 1000);

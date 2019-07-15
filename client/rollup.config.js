@@ -7,7 +7,8 @@ module.exports = {
     input: "src/index.jsx",
     output: {
         file: "public/index.js",
-        format: "umd"
+        format: "umd",
+        sourcemap: true
     },
     plugins: [
         replace({
@@ -24,7 +25,8 @@ module.exports = {
         commonjs({
             include: "node_modules/**",
             namedExports: {
-                "node_modules/react/index.js": ["useState", "useEffect"]
+                "node_modules/react/index.js": ["useState", "useEffect", "Component", "isValidElement", "cloneElement"],
+                "node_modules/react-dom/index.js": ["render"]
             }
         })
     ]
