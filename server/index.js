@@ -39,7 +39,7 @@ const redirectUrl = buildUrl("https://accounts.spotify.com/authorize", {
     "client_id": clientID,
     "response_type": "code",
     "redirect_uri": redirectUri,
-    "scope": "user-read-private%20user-library-read"
+    "scope": "user-read-playback-state%20user-modify-playback-state%20user-library-read"
 });
 
 const getAccessToken = (code) => {
@@ -61,6 +61,35 @@ const getAccessToken = (code) => {
     })
 }
 
+const getCurrentSong = async (token) => {
+    const response = await axios.get("https://api.spotify.com/v1/me/player/currently-playing", {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    });
+    return {
+        progress_ms: response.data.progress_ms,
+        songId: response.data.item.id
+    };
+};
+
+const setSongPosition = async (token, position_ms) => {
+    await axios.put(`https://api.spotify.com/v1/me/player/seek?position_ms=${position_ms}`,
+        null, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+};
+
+const skipPlayback = async (token) => {
+    await axios.post("https://api.spotify.com/v1/me/player/next", null, {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    });
+};
+
 app.use(express.static("../client/public"));
 
 app.get("/authorize", (req, res) => {
@@ -77,7 +106,6 @@ app.post("/register", (req, res) => {
         getAccessToken(body.code)
             .then((tokens) => {
                 users[body.code] = tokens;
-                songRanges[body.code] = {};
                 res.statusCode = 200;
                 res.send();
             })
@@ -138,9 +166,10 @@ app.post("/updateSongRange", (req, res) => {
     });
     req.on("end", () => {
         data = JSON.parse(data);
+        if(!songRanges[token]) songRanges[token] = {};
         songRanges[token][data.songId] = [data.startTime_ms, data.endTime_ms];
 
-        console.log(songRanges);
+        console.log(`${token.substr(0, 10)}...: ${data.songId} => [ ${data.startTime_ms}, ${data.endTime_ms} ]`);
 
         res.statusCode = 200;
         res.send();
@@ -149,14 +178,20 @@ app.post("/updateSongRange", (req, res) => {
 
 app.listen(port, () => console.log(`Server listening on port ${port}`));
 
-setInterval(() => {
-    for(token in users) {
+setInterval(async () => {
+    for(const token in users) {
         const userSongRanges = songRanges[token];
-        if(userSongRanges) continue;
-        // get current song id
-        // see if current song id matches any in songRanges[token]
-        // if so,
-            // if current time is less than start time, seek to star time
-            // if current time is greater than end time, skip to next song
+        if(!userSongRanges) continue;
+        const currentSong = await getCurrentSong(users[token][0]);
+        let range;
+        if((range = userSongRanges[currentSong.songId])) {
+            if(currentSong.progress_ms < range[0]) {
+                setSongPosition(users[token][0], range[0]);
+                console.log(`${token.substr(0, 10)}...: ${currentSong.songId} seek from ${currentSong.progress_ms} to ${range[0]}`);
+            } else if(currentSong.progress_ms >= range[1]) {
+                skipPlayback(users[token][0]);
+                console.log(`${token.substr(0, 10)}...: ${currentSong.songId} at ${currentSong.progress_ms}, skip`);
+            }
+        }
     }
 }, 1000);
