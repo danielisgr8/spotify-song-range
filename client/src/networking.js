@@ -5,14 +5,14 @@ let authCode = "";
 export const registerUser = (code) => {
     authCode = code;
     return new Promise((resolve) => {
-        axios.post("/register", { code })
+        axios.post("./register", { code })
             .then((res) => resolve(res));
     });
 }
 
 export const getSongs = () => {
     return new Promise((resolve, reject) => {
-        axios.get("/songs", {
+        axios.get("./songs", {
             headers: {
                 "Authorization": `Bearer ${authCode}`
             }
@@ -30,7 +30,7 @@ export const getSongs = () => {
  */
 export const updateSongRange = (songId, startTime, endTime) => {
     return new Promise((resolve) => {
-        axios.post("/updateSongRange", {
+        axios.post("./updateSongRange", {
             songId,
             startTime_ms: startTime,
             endTime_ms: endTime

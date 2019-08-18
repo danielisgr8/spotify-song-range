@@ -5,11 +5,12 @@ import { registerUser, getSongs, updateSongRange } from "./networking";
 import { SongCard } from "./SongCard";
 
 import './App.scss';
+import "../node_modules/react-toastify/dist/ReactToastify.min.css";
 import { getArtistsString } from "./utils";
 
 const AuthorizeComponent = () => {
   return (
-    <a href="/authorize">Login to Spotify</a> 
+    <a href="./authorize">Login to Spotify</a> 
   );
 }
 

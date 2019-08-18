@@ -68,6 +68,11 @@ const getCurrentSong = async (token) => {
             Authorization: `Bearer ${token}`
         }
     });
+
+    if(response.status !== 200) {
+        return null;
+    }
+
     return {
         progress_ms: response.data.progress_ms,
         songId: response.data.item.id
@@ -184,6 +189,7 @@ setInterval(async () => {
         const userSongRanges = songRanges[token];
         if(!userSongRanges) continue;
         const currentSong = await getCurrentSong(users[token][0]);
+        if(!currentSong) continue;
         let range;
         if((range = userSongRanges[currentSong.songId])) {
             if(currentSong.progress_ms < range[0]) {
