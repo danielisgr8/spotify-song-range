@@ -61,3 +61,5 @@ typings/
 .next
 
 server/CLIENT_SECRET
+client/public/index.js
+client/public/index.js.map
