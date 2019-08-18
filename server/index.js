@@ -4,9 +4,10 @@ const express = require("express");
 const axios = require("axios");
 
 const app = express();
-const port = 80;
+const port = process.argv.length >= 3 ? parseInt(process.argv[2], 10) : 80;
 const clientID = "ff9c6369ea014cf389ff15aa8c1bc2c7";
-const redirectUri = "http://localhost";
+// TODO: make this a command line argument
+const redirectUri = "https://danielschubert.dev/spotify-song-range/";
 
 const secretFile = fs.readFileSync("./CLIENT_SECRET");
 const clientSecret = secretFile.toString("utf8", 0, secretFile.length);
