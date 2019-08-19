@@ -4,6 +4,8 @@ const express = require("express");
 const axios = require("axios");
 const commandLineArgs = require("command-line-args");
 
+const { buildUrl, uriEncodeParams } = require("./utils");
+
 const optionDefinitions = [
     { name: "redirectUri", alias: "r", type: String, defaultValue: "http://localhost" },
     { name: "port", alias: "p", type: Number, defaultValue: 80 },
@@ -23,25 +25,6 @@ const clientSecret = secretFile.toString("utf8", 0, secretFile.length);
 const users = {};
 /** A map of user token to array of objects of the form {songId, startTime, endTime} */
 const songRanges = {};
-
-const buildUrl = (base, queryParams) => {
-    const entries = Object.entries(queryParams);
-    if(!entries.length) return base;
-    let result = `${base}?${entries[0][0]}=${entries[0][1]}`;
-    for(let i = 1; i < entries.length; i++) {
-        result += `&${entries[i][0]}=${entries[i][1]}`;
-    }
-    return result;
-}
-
-const uriEncodeParams = (params) => {
-    let string = "";
-    for(let prop in params) {
-        string += `${prop}=${params[prop]}&`;
-    }
-    string = string.slice(0, -1);
-    return encodeURI(string);
-}
 
 const redirectUrl = buildUrl("https://accounts.spotify.com/authorize", {
     "client_id": clientID,
