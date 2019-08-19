@@ -2,14 +2,21 @@ const fs = require("fs");
 
 const express = require("express");
 const axios = require("axios");
+const commandLineArgs = require("command-line-args");
+
+const optionDefinitions = [
+    { name: "redirectUri", alias: "r", type: String, defaultValue: "http://localhost" },
+    { name: "port", alias: "p", type: Number, defaultValue: 80 },
+    { name: "secretFile", alias: "s", type: String, defaultValue: "./CLIENT_SECRET" }
+];
+const options = commandLineArgs(optionDefinitions);
 
 const app = express();
-const port = process.argv.length >= 3 ? parseInt(process.argv[2], 10) : 80;
+const port = options.port;
 const clientID = "ff9c6369ea014cf389ff15aa8c1bc2c7";
-// TODO: make this a command line argument
-const redirectUri = "https://danielschubert.dev/spotify-song-range/";
+const redirectUri = options.redirectUri;
 
-const secretFile = fs.readFileSync("./CLIENT_SECRET");
+const secretFile = fs.readFileSync(options.secretFile);
 const clientSecret = secretFile.toString("utf8", 0, secretFile.length);
 
 /** A map of user token to array of the form [accessToken, refreshToken] */
