@@ -114,12 +114,19 @@ app.post("/register", (req, res) => {
 });
 
 app.get("/songs", (req, res) => {
-    const token = /Bearer (.*)$/.exec(req.headers.authorization)[1];
-    if(!token || !users[token]) {
+    const regexResult = /Bearer (.*)$/.exec(req.headers.authorization);
+    if(!regexResult) {
         res.statusCode = 400;
         res.send();
         return;
     }
+    const token = regexResult[1];
+    if(!users[token]) {
+        res.statusCode = 401;
+        res.send();
+        return;
+    }
+
     axios.get("https://api.spotify.com/v1/me/tracks", {
         headers: {
             "Authorization": `Bearer ${users[token][0]}`
@@ -149,9 +156,15 @@ app.get("/songs", (req, res) => {
 });
 
 app.post("/updateSongRange", (req, res) => {
-    const token = /Bearer (.*)$/.exec(req.headers.authorization)[1];
-    if(!users[token]) {
+    const regexResult = /Bearer (.*)$/.exec(req.headers.authorization);
+    if(!regexResult) {
         res.statusCode = 400;
+        res.send();
+        return;
+    }
+    const token = regexResult[1];
+    if(!users[token]) {
+        res.statusCode = 401;
         res.send();
         return;
     }
@@ -166,6 +179,36 @@ app.post("/updateSongRange", (req, res) => {
         songRanges[token][data.songId] = [data.startTime_ms, data.endTime_ms];
 
         console.log(`${token.substr(0, 10)}...: ${data.songId} => [ ${data.startTime_ms}, ${data.endTime_ms} ]`);
+
+        res.statusCode = 200;
+        res.send();
+    });
+});
+
+app.post("/deleteSongRange", (req, res) => {
+    const regexResult = /Bearer (.*)$/.exec(req.headers.authorization);
+    if(!regexResult) {
+        res.statusCode = 400;
+        res.send();
+        return;
+    }
+    const token = regexResult[1];
+    if(!users[token]) {
+        res.statusCode = 401;
+        res.send();
+        return;
+    }
+
+    let data = "";
+    req.on("data", (chunk) => {
+        data += chunk;
+    });
+    req.on("end", () => {
+        data = JSON.parse(data);
+        if(!songRanges[token]) songRanges[token] = {};
+        songRanges[token][data.songId] = null;
+
+        console.log(`${token.substr(0, 10)}...: ${data.songId} => []`);
 
         res.statusCode = 200;
         res.send();

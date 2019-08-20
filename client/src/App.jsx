@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ToastContainer, toast } from "react-toastify";
 
-import { registerUser, getSongs, updateSongRange } from "./networking";
+import { registerUser, getSongs, updateSongRange, clearSongRange } from "./networking";
 import { SongCard } from "./SongCard";
 
 import './App.scss';
@@ -28,7 +28,20 @@ const SongRangeForm = ({ song }) => {
     event.preventDefault();
 
     updateSongRange(song.id, startTime, endTime)
-      .then(() => toast.success("Song range successfully updated"));
+      .then(() => toast.success("Song range successfully updated"))
+      .catch((err) => {
+        console.log(err);
+        toast.error("Song range update unsuccessful");
+      });
+  }
+
+  const handleClearButtonClick = () => {
+    clearSongRange(song.id)
+      .then(() => toast.success("Song range successfully cleared"))
+      .catch((err) => {
+        console.log(err);
+        toast.error("Song range clear unsuccessful");
+      });
   }
 
   useEffect(() => {
@@ -50,6 +63,7 @@ const SongRangeForm = ({ song }) => {
           <input type="number" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
         </label>
         <input type="submit" value="Set song range" />
+        <input type="button" value="Clear" onClick={handleClearButtonClick} />
       </form>
     </div>
   );

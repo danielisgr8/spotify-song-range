@@ -6,7 +6,7 @@ export const registerUser = (code) => {
     authCode = code;
     return new Promise((resolve) => {
         axios.post("./register", { code })
-            .then((res) => resolve(res));
+        .then((res) => resolve(res));
     });
 }
 
@@ -17,8 +17,8 @@ export const getSongs = () => {
                 "Authorization": `Bearer ${authCode}`
             }
         })
-            .then((res) => resolve(res))
-            .catch((err) => reject(err));
+        .then((res) => resolve(res))
+        .catch((err) => reject(err));
     });
 }
 
@@ -29,7 +29,7 @@ export const getSongs = () => {
  * @param {number} endTime End time of the new range in milliseconds
  */
 export const updateSongRange = (songId, startTime, endTime) => {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         axios.post("./updateSongRange", {
             songId,
             startTime_ms: startTime,
@@ -39,6 +39,24 @@ export const updateSongRange = (songId, startTime, endTime) => {
                 "Authorization": `Bearer ${authCode}`
             }
         })
-            .then(() => resolve());
+        .then(() => resolve())
+        .catch((err) => reject(err));
     });
+}
+
+/**
+ * Clears any song range applied to a song.
+ * @param {string} songId Song ID of the song to clear the range of
+ */
+export const clearSongRange = (songId) => {
+    return new Promise((resolve, reject) => {
+        axios.post("./deleteSongRange", { songId },
+        {
+            headers: {
+                "Authorization": `Bearer ${authCode}`
+            }
+        })
+        .then(() => resolve())
+        .catch((err) => reject(err));
+    })
 }
