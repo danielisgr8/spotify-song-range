@@ -9,13 +9,14 @@ const { getCurrentSong, setSongPosition, skipPlayback } = require("./spotify-net
 const optionDefinitions = [
     { name: "redirectUri", alias: "r", type: String, defaultValue: "http://localhost" },
     { name: "port", alias: "p", type: Number, defaultValue: 80 },
+    { name: "clientID", alias: "c", type: String, defaultValue: "ff9c6369ea014cf389ff15aa8c1bc2c7"},
     { name: "secretFile", alias: "s", type: String, defaultValue: "./CLIENT_SECRET" }
 ];
 const options = commandLineArgs(optionDefinitions);
 
 const app = express();
 const port = options.port;
-const clientID = "ff9c6369ea014cf389ff15aa8c1bc2c7";
+const clientID = options.clientID;
 const redirectUri = options.redirectUri;
 
 const secretFile = fs.readFileSync(options.secretFile);
