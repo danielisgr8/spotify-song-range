@@ -16,3 +16,15 @@ module.exports.uriEncodeParams = (params) => {
     string = string.slice(0, -1);
     return encodeURI(string);
 };
+
+module.exports.getJsonBody = (req) => {
+    return new Promise((resolve) => {
+        let data = "";
+        req.on("data", (chunk) => {
+            data += chunk;
+        });
+        req.on("end", () => {
+            resolve(JSON.parse(data));
+        });
+    });
+}
