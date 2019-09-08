@@ -1,7 +1,8 @@
 const axios = require("axios");
 
-const { buildUrl, getJsonBody } = require("./utils");
-const { getAccessToken } = require("./spotify-networking");
+const { buildUrl, getJsonBody } = require("../utils");
+const { getAccessToken, getUpdatedAccessToken } = require("../spotify-networking");
+const { getSongs } = require("./accessors");
 
 class MalformedAuthorizationError extends Error {}
 class ClientUnauthorizedError extends Error {}
@@ -69,20 +70,6 @@ class ClientEndpointModule {
     }
 
     /**
-     * Handles errors received from Spotify API requests by writing relevant data to the response, `res`.
-     * 
-     * If the error is from unauthorization, the function will attempt to use the user's refresh token
-     * to obtain a new access token.
-     * @param {Object} err Axios error received from Spotify API call.
-     * @param {Express.Response} res Client response object.
-     * @param {Object} user The user object associated with the original request.
-     * @param {Function} retryFunction Function to be called after successful re-authorization.
-     */
-    _handleSpotifyError(err, res, user, retryFunction) {
-
-    }
-
-    /**
      * Sets the client endpoints of the given Express app.
      * @param {Express} app Express app.
      */
@@ -116,33 +103,10 @@ class ClientEndpointModule {
             this._checkAuthorization(req, res)
             .then((token) => {
                 const user = this.users[token];
-                axios.get("https://api.spotify.com/v1/me/tracks", {
-                    headers: {
-                        "Authorization": `Bearer ${user[0]}`
-                    }
-                })
-                .then((songsRes) => {
-                    res.send(songsRes.data.items.map((item) => {
-                        try {
-                            return {
-                                album: {
-                                    artists: item.track.album.artists.map((artist) => artist.name),
-                                    name: item.track.album.name
-                                },
-                                artists: item.track.artists.map((artist) => artist.name),
-                                duration_ms: item.track.duration_ms,
-                                name: item.track.name,
-                                id: item.track.id
-                            }
-                        } catch(err) { return null; }
-                    }));
-                })
-                .catch((err) => {
-                    console.error(err && err.response);
-                    res.status(404).send(err && err.response);
-                });
-            })
-            .catch(() => res.send());
+                getSongs(res, user)
+                .then((songs) => res.send(songs))
+                .catch(() => res.send())
+            });
         });
 
         app.post("/updateSongRange", (req, res) => {
@@ -156,7 +120,7 @@ class ClientEndpointModule {
                     console.log(`${token.substr(0, 10)}...: ${body.songId} => [ ${body.startTime_ms}, ${body.endTime_ms} ]`);
             
                     res.status(200).send();
-                })
+                });
             })
             .catch(() => res.send());
         });
