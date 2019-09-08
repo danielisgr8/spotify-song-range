@@ -69,6 +69,20 @@ class ClientEndpointModule {
     }
 
     /**
+     * Handles errors received from Spotify API requests by writing relevant data to the response, `res`.
+     * 
+     * If the error is from unauthorization, the function will attempt to use the user's refresh token
+     * to obtain a new access token.
+     * @param {Object} err Axios error received from Spotify API call.
+     * @param {Express.Response} res Client response object.
+     * @param {Object} user The user object associated with the original request.
+     * @param {Function} retryFunction Function to be called after successful re-authorization.
+     */
+    _handleSpotifyError(err, res, user, retryFunction) {
+
+    }
+
+    /**
      * Sets the client endpoints of the given Express app.
      * @param {Express} app Express app.
      */

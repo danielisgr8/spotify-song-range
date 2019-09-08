@@ -28,7 +28,11 @@ module.exports.getCurrentSong = async (token) => {
         }
     });
 
-    if(response.status !== 200) {
+    if(response.status === 401) {
+
+    }
+
+    if(response.status === 204) {
         return null;
     }
 
