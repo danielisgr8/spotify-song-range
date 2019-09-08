@@ -1,25 +1,19 @@
 const fs = require("fs");
 
 const express = require("express");
-const commandLineArgs = require("command-line-args");
 
 const ClientEndpointModule = require("./client-endpoint-module");
+const CommandLineModule = require("./command-line-module");
 const { getCurrentSong, setSongPosition, skipPlayback } = require("./spotify-networking");
 
-const optionDefinitions = [
-    { name: "redirectUri", alias: "r", type: String, defaultValue: "http://localhost" },
-    { name: "port", alias: "p", type: Number, defaultValue: 80 },
-    { name: "clientID", alias: "c", type: String, defaultValue: "ff9c6369ea014cf389ff15aa8c1bc2c7"},
-    { name: "secretFile", alias: "s", type: String, defaultValue: "./CLIENT_SECRET" }
-];
-const options = commandLineArgs(optionDefinitions);
+const commandLineArgs = CommandLineModule.getCommandLineArgs();
 
 const app = express();
-const port = options.port;
-const clientID = options.clientID;
-const redirectUri = options.redirectUri;
+const port = commandLineArgs.port;
+const clientID = commandLineArgs.clientID;
+const redirectUri = commandLineArgs.redirectUri;
 
-const secretFile = fs.readFileSync(options.secretFile);
+const secretFile = fs.readFileSync(commandLineArgs.secretFile);
 const clientSecret = secretFile.toString("utf8", 0, secretFile.length);
 
 /** A map of user token to array of the form [accessToken, refreshToken] */
