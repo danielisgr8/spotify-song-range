@@ -3,17 +3,18 @@ const axios = require("axios");
 const { uriEncodeParams } = require("./utils");
 
 module.exports.getAccessToken = (code, redirectUri, clientID, clientSecret) => {
+    const authString = `Basic ${Buffer.from(`${clientID}:${clientSecret}`).toString("base64")}`;
+    const bodyParams = uriEncodeParams({
+        grant_type: "authorization_code",
+        code,
+        redirect_uri: redirectUri
+    });
+
     return new Promise((resolve, reject) => {
-        const bodyParams = uriEncodeParams({
-            grant_type: "authorization_code",
-            code,
-            redirect_uri: redirectUri,
-            client_id: clientID,
-            client_secret: clientSecret
-        });
         axios.post("https://accounts.spotify.com/api/token", bodyParams, {
             headers: {
-                "content-type": "application/x-www-form-urlencoded"
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Authorization": authString
             }
         })
         .then((res) => resolve([res.data.access_token, res.data.refresh_token]))
