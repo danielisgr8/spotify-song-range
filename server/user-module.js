@@ -29,8 +29,8 @@ class UserModule {
         else return user;
     }
 
-    async _spotifyRequest(userToken, user, fn) {
     // TODO: document
+    async _spotifyRequest(userToken, user, fn, lastResortFn) {
         try {
             return await fn(user);
         } catch(err) {
@@ -38,7 +38,13 @@ class UserModule {
                 tokenLog(userToken, "Attempting access token refresh");
                 user[0] = this.spotifyModule.refreshAccessToken(user[1]);
                 tokenLog(userToken, "Refreshed access token");
-                return await fn(user);
+                try {
+                    return await fn(user);
+                } catch(err) {
+                    if(err instanceof SpotifyExpiredTokenError) {
+                        lastResortFn(user);
+                    } else { throw err }
+                }
             } else {
                 throw err;
             }
@@ -76,9 +82,14 @@ class UserModule {
                             tokenLog(token, `${currentSong.songId} at ${currentSong.progress_ms}, skip`);
                         }
                     }
-                });
+                }, () => this.deleteUser(token));
             }
         }, 1000);
+    }
+
+    deleteUser(userToken) {
+        delete this.users[userToken];
+        delete this.songRanges[userToken];
     }
 
     async registerUser(userToken) {
