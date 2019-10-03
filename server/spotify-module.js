@@ -90,6 +90,8 @@ class SpotifyModule {
         }
     }
     
+    // TODO: add helper method to remove headers repeat code
+
     async getCurrentSong(token) {
         try {
             const response = await axios.get("https://api.spotify.com/v1/me/player/currently-playing", {

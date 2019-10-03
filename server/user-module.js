@@ -78,6 +78,8 @@ class UserModule {
                             this.spotifyModule.setSongPosition(user[0], range[0]);
                             tokenLog(token, `${currentSong.songId} seek from ${currentSong.progress_ms} to ${range[0]}`);
                         } else if(currentSong.progress_ms >= range[1]) {
+                            // TODO: If the song takes longer than 1 second to skip, we may accidentally skip playback twice.
+                            // TODO: This will skip the next song as well. Unlikely but possible.
                             this.spotifyModule.skipPlayback(user[0]);
                             tokenLog(token, `${currentSong.songId} at ${currentSong.progress_ms}, skip`);
                         }
