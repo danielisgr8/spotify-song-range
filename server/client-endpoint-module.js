@@ -46,6 +46,8 @@ class ClientEndpointModule {
         fn(token);
     }
 
+    // TODO: move these helpers to a submodule
+
     _songsHelper(res, token) {
         this.userModule.getSongs(token)
         .then((songs) => res.send(songs))

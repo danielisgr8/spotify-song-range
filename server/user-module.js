@@ -30,6 +30,7 @@ class UserModule {
     }
 
     async _spotifyRequest(userToken, user, fn) {
+    // TODO: document
         try {
             return await fn(user);
         } catch(err) {
@@ -85,6 +86,7 @@ class UserModule {
         this.users[userToken] = tokens;
     }
 
+    // TODO: move this helper to a submodule
     async _getSongsHelper(user) {
         const songs = await this.spotifyModule.getSongs(user[0]);
         return songs.map((item) => {
