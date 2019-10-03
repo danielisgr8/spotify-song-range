@@ -36,7 +36,7 @@ class UserModule {
         } catch(err) {
             if(err instanceof SpotifyExpiredTokenError) {
                 tokenLog(userToken, "Attempting access token refresh");
-                user[0] = this.spotifyModule.refreshAccessToken(user[1]);
+                user[0] = await this.spotifyModule.refreshAccessToken(user[1]);
                 tokenLog(userToken, "Refreshed access token");
                 try {
                     return await fn(user);
@@ -69,7 +69,7 @@ class UserModule {
                 const userSongRanges = this.songRanges[token];
                 const user = this.users[token];
                 if(!userSongRanges) continue;
-                this._spotifyRequest(token, user, async () => {
+                await this._spotifyRequest(token, user, async () => {
                     const currentSong = await this.spotifyModule.getCurrentSong(user[0]);
                     if(!currentSong) return;
                     let range;
