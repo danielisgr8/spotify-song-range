@@ -1,6 +1,15 @@
 const axios = require("axios");
 
-const { uriEncodeParams } = require("./utils");
+const { uriEncodeParams, buildUrl } = require("./utils");
+
+module.exports.getRedirectUrl = (clientID, redirectUri) => {
+    return buildUrl("https://accounts.spotify.com/authorize", {
+        "client_id": clientID,
+        "response_type": "code",
+        "redirect_uri": redirectUri,
+        "scope": "user-read-playback-state%20user-modify-playback-state%20user-library-read"
+    });
+};
 
 module.exports.getAccessToken = (code, redirectUri, clientID, clientSecret) => {
     const authString = `Basic ${Buffer.from(`${clientID}:${clientSecret}`).toString("base64")}`;
@@ -74,3 +83,25 @@ module.exports.skipPlayback = async (token) => {
         }
     });
 };
+
+module.exports.getSongs = async (token) => {
+    const songsRes = await axios.get("https://api.spotify.com/v1/me/tracks", {
+        headers: {
+            "Authorization": `Bearer ${token}`
+        }
+    });
+    return songsRes.data.items.map((item) => {
+        try {
+            return {
+                album: {
+                    artists: item.track.album.artists.map((artist) => artist.name),
+                    name: item.track.album.name
+                },
+                artists: item.track.artists.map((artist) => artist.name),
+                duration_ms: item.track.duration_ms,
+                name: item.track.name,
+                id: item.track.id
+            }
+        } catch(err) { return null; }
+    });
+}

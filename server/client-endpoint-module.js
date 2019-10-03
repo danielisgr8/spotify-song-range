@@ -1,6 +1,5 @@
-const { buildUrl, getJsonBody } = require("../utils");
-const { getAccessToken, getUpdatedAccessToken } = require("../spotify-networking");
-const { getSongs } = require("./accessors");
+const { getJsonBody } = require("./utils");
+const { getRedirectUrl, getAccessToken, getUpdatedAccessToken, getSongs } = require("./spotify-networking");
 
 class MalformedAuthorizationError extends Error {}
 class ClientUnauthorizedError extends Error {}
@@ -106,13 +105,7 @@ class ClientEndpointModule {
      */
     setEndpoints(app) {
         app.get("/authorize", (_req, res) => {
-            const redirectUrl = buildUrl("https://accounts.spotify.com/authorize", {
-                "client_id": this.clientID,
-                "response_type": "code",
-                "redirect_uri": this.redirectUri,
-                "scope": "user-read-playback-state%20user-modify-playback-state%20user-library-read"
-            });
-            res.redirect(redirectUrl);
+            res.redirect(getRedirectUrl(this.clientID, this.redirectUri));
         });
         
         app.post("/register", (req, res) => {
@@ -134,7 +127,7 @@ class ClientEndpointModule {
             this._checkAuthorization(req, res)
             .then((token) => {
                 const user = this.users[token];
-                getSongs(res, user)
+                getSongs(user[0])
                 .then((songs) => res.send(songs))
                 .catch((err) => {
                     try {
@@ -142,7 +135,7 @@ class ClientEndpointModule {
                         this._handleSpotifyError(err, res, user)
                         .then(() => {
                             console.log(`${token.substr(0, 10)}...: Refreshed access token`);
-                            getSongs(res, user)
+                            getSongs(user[0])
                             .then((songs) => res.send(songs))
                             .catch((err) => res.send(err));
                         })
