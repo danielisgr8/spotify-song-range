@@ -24,7 +24,8 @@ class SpotifyModule {
      */
     _handleError(err) {
         if(err.response.status === 401) {
-            if(err.response.data.error.message === "Invalid access token") {
+            const data = err.response.data;
+            if(data && data.error && data.error.message === "Invalid access token") {
                 throw new SpotifyInvalidTokenError();
             } else {
                 throw new SpotifyExpiredTokenError();
