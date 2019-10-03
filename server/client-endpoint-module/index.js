@@ -1,5 +1,3 @@
-const axios = require("axios");
-
 const { buildUrl, getJsonBody } = require("../utils");
 const { getAccessToken, getUpdatedAccessToken } = require("../spotify-networking");
 const { getSongs } = require("./accessors");
@@ -70,6 +68,39 @@ class ClientEndpointModule {
     }
 
     /**
+     * Handles an error, `err`, received from a Spotify API request. Returns a promise.
+     * 
+     * If the error is from unauthorization, the function will attempt to use the user's refresh token
+     * to obtain a new access token. If a new access token is obtained, `user` will be updated and
+     * the promise will be resolved.
+     * 
+     * If the user cannot be re-authorized, the promise will be rejected and `res` will have its status code
+     * and body updated accordingly.
+     * 
+     * If the error is unknown, the promise will be rejected and `res` will have its status code and body
+     * updated accordingly.
+     * @param {Object} err Axios error received from Spotify API call.
+     * @param {Express.Response} res Client response object.
+     * @param {Object} user The user object associated with the original request.
+     */
+    _handleSpotifyError(err, res, user) {
+        return new Promise((resolve, reject) => {
+            if(err.response.status === 400 || err.response.status === 401) {
+                getUpdatedAccessToken(user[1], this.clientID, this.clientSecret)
+                .then((accessToken) => {
+                    user[0] = accessToken;
+                    resolve();
+                })
+                .catch(() => {
+                    res.status(401).write("Cannot re-authorize user.", () => reject());
+                });
+            } else {
+                res.status(400).write(err.response, () => reject());
+            }
+        });
+    }
+
+    /**
      * Sets the client endpoints of the given Express app.
      * @param {Express} app Express app.
      */
@@ -105,8 +136,23 @@ class ClientEndpointModule {
                 const user = this.users[token];
                 getSongs(res, user)
                 .then((songs) => res.send(songs))
-                .catch(() => res.send())
-            });
+                .catch((err) => {
+                    try {
+                        console.log(`${token.substr(0, 10)}...: Attempting access token refresh`);
+                        this._handleSpotifyError(err, res, user)
+                        .then(() => {
+                            console.log(`${token.substr(0, 10)}...: Refreshed access token`);
+                            getSongs(res, user)
+                            .then((songs) => res.send(songs))
+                            .catch((err) => res.send(err));
+                        })
+                        .catch(() => res.send());
+                    } catch(err) {
+                        res.send();
+                    }
+                })
+            })
+            .catch(() => res.send());
         });
 
         app.post("/updateSongRange", (req, res) => {
@@ -114,6 +160,7 @@ class ClientEndpointModule {
             .then((token) => {
                 getJsonBody(req)
                 .then((body) => {
+                    // TODO: error checking for starTime > endTime
                     if(!this.songRanges[token]) this.songRanges[token] = {};
                     this.songRanges[token][body.songId] = [body.startTime_ms, body.endTime_ms];
             
