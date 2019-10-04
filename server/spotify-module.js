@@ -108,6 +108,7 @@ class SpotifyModule {
                 progress_ms: response.data.progress_ms,
                 songId: response.data.item.id
             };
+            // TODO: catch doesn't account for 502 error or timeout
         } catch(err) { this._handleError(err) }
     }
     
