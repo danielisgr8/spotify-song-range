@@ -28,3 +28,12 @@ module.exports.getJsonBody = (req) => {
         });
     });
 }
+
+/**
+ * Prints a shortened form of `token` (first 10 characters) followed by `msg`.
+ * @param {string} token 
+ * @param {string} msg 
+ */
+module.exports.tokenLog = (token, msg) => {
+    console.log(`${token.substr(0, 10)}...: ${msg}`);
+}
