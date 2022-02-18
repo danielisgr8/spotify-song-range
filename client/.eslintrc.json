@@ -19,8 +19,11 @@
         "sourceType": "module"
     },
     "plugins": [
-        "react"
+        "react",
+        "jest"
     ],
     "rules": {
-    }
+        "react/prop-types": "ignore"
+    },
+    "ignorePatterns": ["webpack.config.js", "babel.config.js", "jest.config.js"]
 }

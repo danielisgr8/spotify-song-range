@@ -1,6 +1,6 @@
 module.exports = {
-  "setupFilesAfterEnv": ["./src/setupTests.js"],
   "moduleNameMapper": {
     "^.*[.](css|less|scss|sass)$": "identity-obj-proxy"
-  }
+  },
+  "testEnvironment": "jsdom"
 };

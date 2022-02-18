@@ -21,9 +21,5 @@ describe("<App />", () => {
     wrapper.getByText("testError");
   });
 
-  test("<SpotifyComponent /> rendered with code query parameter", () => {
-    window.location.search = "?code=123";
-    const wrapper = render(<App />);
-    wrapper.getByText("Authorization code: 123");
-  });
+  test.todo("<SpotifyComponent /> rendered with code query parameter");
 });
